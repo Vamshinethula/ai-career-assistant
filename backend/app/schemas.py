@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, EmailStr
 
 
@@ -34,5 +35,16 @@ class ResumeResponse(BaseModel):
     uploaded_at: datetime
 
     class Config:
-        from_attributes = True    
+        from_attributes = True
+
+
+class ResumeDetailResponse(ResumeResponse):
+    resume_text: str | None
+
+
+class ResumeSkillsResponse(BaseModel):
+    resume_id: int
+    method: Literal["rule_based"] = "rule_based"
+    text_available: bool
+    skills: list[str]
 

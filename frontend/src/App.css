@@ -1,0 +1,81 @@
+.welcome {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.welcome-header {
+  max-width: 700px;
+  margin-bottom: 48px;
+}
+
+.eyebrow {
+  color: #42665a;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 16px 0;
+  font-size: clamp(2.25rem, 6vw, 3.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.introduction {
+  color: #50615b;
+  font-size: 1.2rem;
+}
+
+.overview {
+  padding: 32px;
+  border: 1px solid #d8e1d9;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+h2 {
+  font-size: 1.4rem;
+}
+
+.availability {
+  margin-top: 8px;
+  color: #50615b;
+}
+
+.feature-list {
+  display: grid;
+  gap: 24px;
+  margin: 32px 0 0;
+  padding-left: 24px;
+}
+
+.feature-list li {
+  padding-left: 8px;
+}
+
+.feature-list li::marker {
+  color: #42665a;
+  font-weight: 700;
+}
+
+h3 {
+  margin-bottom: 4px;
+  font-size: 1.05rem;
+}
+
+.feature-list p {
+  color: #50615b;
+}
+
+@media (max-width: 600px) {
+  .welcome {
+    padding: 40px 20px;
+  }
+
+  .overview {
+    padding: 24px;
+  }
+}

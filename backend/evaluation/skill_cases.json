@@ -1,0 +1,17 @@
+[
+  {"id":"backend", "group":"supported", "text":"Built APIs with Python, FastAPI, SQLAlchemy and PostgreSQL. Deployed with Docker.", "expected":["Python","FastAPI","SQLAlchemy","PostgreSQL","Docker"]},
+  {"id":"frontend", "group":"supported", "text":"Skills: JavaScript, TypeScript, ReactJS, HTML5, CSS3.", "expected":["JavaScript","TypeScript","React","HTML","CSS"]},
+  {"id":"java_stack", "group":"supported", "text":"Java and Spring Boot services backed by MySQL; Git and Linux.", "expected":["Java","Spring Boot","MySQL","Git","Linux"]},
+  {"id":"data", "group":"supported", "text":"PYTHON, pandas, NumPy and sklearn; PyTorch / TensorFlow experiments.", "expected":["Python","Pandas","NumPy","scikit-learn","PyTorch","TensorFlow"]},
+  {"id":"cloud", "group":"supported", "text":"Amazon Web Services, Azure, Docker and k8s.", "expected":["AWS","Azure","Docker","Kubernetes"]},
+  {"id":"pdf_whitespace", "group":"supported", "text":"Node\nJS, Spring\tBoot, Mongo DB and Fast API.", "expected":["Node.js","Spring Boot","MongoDB","FastAPI"]},
+  {"id":"duplicates", "group":"supported", "text":"React, React.js, ReactJS, PostgreSQL and postgres.", "expected":["React","PostgreSQL"]},
+  {"id":"punctuation", "group":"supported", "text":"C++ / C#; SQL, SQLite. Django and Flask.", "expected":["C++","C#","SQL","SQLite","Django","Flask"]},
+  {"id":"substring_negatives", "group":"supported", "text":"GitHub, reaction, CPython, C+++ and MySQL.", "expected":["MySQL"]},
+  {"id":"split_javascript", "group":"supported", "text":"Built interfaces using Java Script and Angular.", "expected":["JavaScript","Angular"]},
+  {"id":"both_java_languages", "group":"supported", "text":"Java services with Java Script interfaces.", "expected":["Java","JavaScript"]},
+  {"id":"no_text", "group":"supported", "text":" \n\t ", "expected":[]},
+  {"id":"negative_mention", "group":"supported", "text":"No experience with Python.", "expected":["Python"]},
+  {"id":"ordinary_word", "group":"limitation", "text":"I react quickly to customer questions.", "expected":[], "note":"Ordinary language is ambiguous with the React catalog name."},
+  {"id":"outside_catalog", "group":"limitation", "text":"Built Android apps using Kotlin.", "expected":["Kotlin"], "note":"The starter catalog does not cover every software skill."}
+]

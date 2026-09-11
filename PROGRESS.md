@@ -1,0 +1,291 @@
+# PROGRESS.md — AI Career Assistant
+
+## Git checkpoint preparation - 2026-09-11
+
+User requested commit and push of all work so far. Re-ran 24 backend tests, frontend build and lint successfully. Verified runtime/private files are ignored and no token-pattern matches were found. Checkpoint includes frontend authentication/dashboard/upload/text/skills, backend parsing/retrieval/skills, regression tests, evaluation and learning notes. Browser text/skills checks remain pending. Next development checkpoint: define illustrative roles and transparent overlap scoring. Commit/push outcome is recorded in Git history and the session response.
+
+
+## Matcher evaluation - 2026-09-11
+
+- Confirmed working: 24 backend tests pass. Added 15 synthetic labeled examples and repeatable evaluation runner. Thirteen supported cases now match exactly (previously 12); two limitation probes remain mismatches.
+- Fixed Java Script also producing Java by preferring longer overlapping aliases; separate Java mentions preserved.
+- Evaluation reports precision/recall and extra/missing skills by group. See backend/evaluation/README.md for before/after and limitations. These development examples are not held-out accuracy evidence.
+- Next: define a small illustrative role catalog and transparent skill-overlap scoring, preserving keyword/proficiency limitations. Skills/text browser checks remain unverified. No schema/dependency changes; work uncommitted.
+
+
+## Skills dashboard checkpoint - 2026-09-11
+
+- Confirmed working by user report: skill endpoint passed in Postman after replacing the resume-ID placeholder with a numeric ID.
+- Confirmed working: frontend build/lint and isolated client checks for request/auth, populated/no-match/no-text responses, 401/404/500, malformed schema/JSON, offline and abort propagation.
+- Implemented but unverified in browser: View skills/Hide skills, list rendering, loading/retry/errors, no-readable-text versus no-catalog-match messages, cancellation and session reset.
+- Added ResumeSkills and getResumeSkills; ResumeList tracks one open skills panel independently of text. Backend unchanged; previous 22-test result retained, not rerun for this frontend-only change.
+- Next: compare browser skills with Postman results, then evaluate matcher precision/coverage on representative synthetic examples before matching roles. Earlier text-view browser test remains pending. No dependency change or commit.
+
+
+## Skill extraction backend - 2026-09-11
+
+- Confirmed working: 22 backend tests pass, including six matcher cases and three skills HTTP cases plus all prior tests. Covers explicit mentions, aliases, whitespace, duplicates, punctuation, longer-word exclusions, missing text, no matches, owner access, 401 and 404. Stored text remains unchanged.
+- Added local 32-skill software catalog, extract_skills service, structured ResumeSkillsResponse and GET /resumes/{resume_id}/skills. Shared owner lookup with detail endpoint. No database/dependency changes or external API use.
+- Scope: deterministic term matching, not proficiency assessment; negation/context and skills outside catalog are unsupported. Synthetic test checks are not real-world quality evaluation.
+- Next: display skill results in React with empty-text/no-match/error states. Text-view browser verification remains pending. Work uncommitted.
+
+
+## Extracted text checkpoint - 2026-09-11
+
+- Confirmed working by user report: uploaded-resume list visible in browser.
+- Confirmed working: 13 backend tests, frontend build/lint and detail-client checks. Detail HTTP tests cover owner text, other-owner/missing 404, missing/invalid token 401, null/empty text and response fields. Existing list/upload regressions pass.
+- Implemented but unverified in browser: View text/Hide text, loading/retry/errors, empty-text explanation, switching resumes and cancellation.
+- Next: manual extracted-text check; then plan a deterministic skill-extraction checkpoint with explicit input/output/evaluation. No schema/dependency changes; tests used synthetic data. Work uncommitted.
+
+
+## Resume list checkpoint - 2026-09-11
+
+- Confirmed working: nine backend tests pass. New ASGI HTTP tests verify GET /resumes returns only the token owner's rows, newest first, empty 200 list, missing/invalid auth 401, and metadata-only response. Existing six upload regression tests pass.
+- Confirmed working: frontend build/lint and client checks for GET/bearer header, populated/empty list, 401/500, malformed responses and offline server.
+- Implemented but unverified in browser: ResumeList filenames, loading/empty/error/retry behavior, reload after upload, cancellation and 401 session reset.
+- Next: manually verify saved resume list and upload refresh, then add owner-protected extracted-text viewing. No schema/dependency changes. Tests used isolated data. No commit; earlier work preserved.
+
+
+## Upload cleanup verified - 2026-09-11
+
+- Confirmed working: six isolated unittest cases pass: valid PDF text/file/owner, corrupt PDF, injected parser failure, commit failure, partial disk write, non-PDF rejection. Tests call the route directly, using synthetic PDFs, temporary files and in-memory SQLite; HTTP transport/auth were not retested.
+- Reproduced premature commit (AssertionError: 1 != 0), leftover partial file, and corrupt-PDF Windows file lock before fixing them.
+- Upload now parses, flushes and builds the response before one commit. Parser reads bytes and closes its document with a context manager. Write failures remove partial files.
+- Next: resume retrieval API and dashboard list with user ownership checks. No schema/dependency change; existing user data untouched. Browser upload after this fix remains unverified. Work remains uncommitted.
+
+
+## Browser upload confirmed - 2026-09-11
+
+- Confirmed working (user report): successfully uploaded a resume through the running frontend. This supersedes the happy-path browser verification gap below.
+- Both servers returned HTTP 200 during startup verification.
+- Browser failure paths and independent inspection of stored text remain unverified.
+- Next checkpoint: reproduce and fix backend parsing-failure transaction cleanup, then resume retrieval/display. Existing changes remain uncommitted.
+
+
+## Latest checkpoint - PDF upload UI, 2026-09-11
+
+- Confirmed working: production build (approved execution outside sandbox), lint, isolated JavaScript client checks for multipart field resume_file, bearer header, no manually set Content-Type, 201 response, 400/401/422/500 errors, offline server and malformed response.
+- Implemented but unverified: ResumeUpload component on the authenticated dashboard; PDF selection, pending state, success feedback, session-expired handling and unmount cancellation. Real browser upload and backend persistence were not retested this session.
+- Removed backend debug printing of extracted resume text. No schema or dependency changes.
+- Current/next: run the browser happy/failure checks in LEARNING_LOG.md before adding resume retrieval. Browser automation tools unavailable. Existing backend commits the resume row before parsing; parse failure cleanup can leave a row pointing to a removed file. Separate targeted backend checkpoint needed.
+- Work remains uncommitted; existing backend/frontend/documentation edits preserved.
+
+
+## Latest checkpoint - Authenticated dashboard, 2026-09-10
+
+- Confirmed working: build/lint; client checks for GET /users/me bearer header, profile success, 401/500 status preservation, connection failure, malformed responses and abort propagation; login/register POST regression checks.
+- Confirmed working: isolated backend ASGI checks with two users return the profile matching each token; missing/invalid/expired/unknown-user tokens return 401; both allowed origins pass GET/Authorization preflight, untrusted origin returns 400. In-memory database only; no tokens printed.
+- Implemented but unverified: browser dashboard loading, profile display, retry, logout during loading and return to login with session message on 401. Browser automation unavailable in this session.
+- Added Dashboard.jsx and getCurrentUser; generalized existing JSON helper. App replaces temporary success view with dashboard, keeps token in memory and clears it on protected-request 401. CORS permits GET and Authorization alongside existing POST/Content-Type.
+- Current: manual dashboard checkpoint. Next: PDF resume upload form connected to existing protected upload endpoint. No known blocker; no database/schema/dependency changes. Prior edits preserved; no commit.
+
+## Latest checkpoint - Login integration, 2026-09-10
+
+- Confirmed working: production build and lint; client checks for login JSON payload/success, 401/422/500, network failure, malformed JSON/token response; registration success/error regression checks.
+- Confirmed working: isolated in-memory backend ASGI checks for registration 201, login 200 + bearer token, allowed CORS response, wrong password/unknown email 401 and invalid email 422. Existing database untouched; tokens not printed.
+- Implemented but unverified: LoginForm browser behavior, pending state, App success view, logout and refresh resetting session. Manual checks below in LEARNING_LOG.md.
+- Added LoginForm; shared JSON POST helper in existing api.js; App holds token in React state, hides account forms after login, clears token on logout. Registration feedback now points to login below.
+- Current: manual login UI checkpoint. Next: authenticated /users/me request and dashboard, including expired-token handling. No implementation blocker. Existing bcrypt warning persists; no backend changes this step.
+- Work uncommitted; earlier registration/resume changes preserved.
+
+## Latest checkpoint - Registration API integration, 2026-09-10
+
+- ? Confirmed working: production build and lint; API client checks for JSON payload, success, 409, 422, 500 and network failure. Backend ASGI checks with an isolated in-memory SQLite database: registration 201, hashed password verified, no password in response, duplicate 409, invalid email 422, local CORS preflights 200 and untrusted origin 400.
+- Added frontend/src/services/api.js; RegisterForm now submits, disables inputs while waiting, clears password on success, and shows feedback. FastAPI permits the two local Vite origins for JSON POST requests.
+- ?? Implemented but unverified: actual browser submission/rendering. Refresh the frontend with FastAPI running; new test email should show success; repeat should show duplicate feedback; backend offline should show readable connection feedback.
+- Current: manual browser checkpoint. Next: login form and API integration. No implementation blocker. Existing Passlib/bcrypt warning recorded separately; no dependency changes.
+- Existing database and resume edits preserved. No commit made. This supersedes earlier frontend-only registration status.
+
+## Latest checkpoint - Registration form, 2026-09-10
+
+- Added: components/RegisterForm.jsx and RegisterForm.css, rendered below the welcome overview in App.jsx.
+- Scope: frontend-only form with full_name, email, and password; controlled inputs and browser validation. Check details prevents default submission and shows a local message; no network request or account creation. Password is held only in React state, not logged or persisted by application code.
+- Verified: build and lint exit 0; Vite serves form module with HTTP 200.
+- Implemented but unverified: browser interaction and responsive layout. Happy path: enter a nonblank name, valid email, and nonempty test password; Check details shows that checks passed and no account was created. Failure paths: empty required fields, invalid email, spaces-only name should block submission. Editing fields clears previous feedback.
+- Current task: manual form checks and learning controlled inputs. Next: connect registration to FastAPI with API client, browser cross-origin configuration, and success/error handling.
+- No known build blocker. Backend unchanged. No commit made.
+
+---
+
+
+## Latest checkpoint - Welcome page, 2026-09-10
+
+- Confirmed working (user report): starter page opened and counter increased.
+- Completed: replaced demo counter with a static AI Career Assistant welcome page; simplified global/page CSS; updated browser title.
+- Verified: npm run build and npm run lint exit 0; existing server returns HTTP 200 and serves updated title and welcome module.
+- Implemented but unverified: visual layout of the new welcome page. User should refresh http://127.0.0.1:5173/ and check heading and all three planned-feature descriptions; narrow browser to check wrapping and horizontal overflow.
+- Current task: user visual check and learning JSX/components/className. Next: registration form checkpoint.
+- No known build blockers. Changes uncommitted. Backend unchanged.
+- Earlier starter-browser-pending entries below are superseded by the user confirmation above.
+
+---
+
+
+## Latest checkpoint - 2026-09-10
+
+- Completed: installed Node.js 24.19.0 and npm 11.17.0; created frontend/ with the official React JavaScript Vite starter; installed dependencies.
+- Confirmed working: npm run build and npm run lint exit 0. Vite serves / and /src/App.jsx with HTTP 200 at http://127.0.0.1:5173/. Git ignores frontend/node_modules and frontend/dist.
+- Implemented but unverified: browser rendering and interactive counter. Open the URL and click Count is 0; expect Count is 1.
+- Failure check to perform: stop the dev server, then reload; expect connection refused. Restart with npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort.
+- Current task: finish the visual starter-page checkpoint. No known build blocker.
+- Next: explain the starter files, then replace the starter with the first AI Career Assistant page, one checkpoint at a time.
+- Repository inspection supersedes older unknowns below: frontend now exists; PyMuPDF parsing and resume_text persistence code were inspected on September 9, but backend runtime tests were not repeated. Existing backend edits remain uncommitted.
+- Prior backend success claims below come from the imported handoff.
+
+---
+
+
+## Status Legend
+
+- ✅ Confirmed working
+- 🟡 Implemented but unverified
+- 🔵 Planned
+- ⛔ Blocked
+- ❌ Broken
+- ⚪ Unknown — repository verification required
+
+---
+
+# Current Overall State
+
+## Backend
+
+### ✅ FastAPI application
+Local development backend has been confirmed running at:
+`http://127.0.0.1:8000`
+
+### ✅ Root endpoint
+`GET /` confirmed `200 OK`.
+
+### ✅ User registration
+Registration exists and test users have been created successfully.
+
+### ✅ Login
+`POST /auth/login` confirmed working and returns JWT bearer token.
+
+### ✅ Protected current-user route
+`GET /users/me` confirmed:
+- valid bearer token -> 200
+- no token -> 401
+
+### ✅ Resume upload
+`POST /resumes/upload` confirmed working for authenticated PDF upload.
+
+### ✅ PDF-only validation
+DOCX upload confirmed rejected with:
+`400 Bad Request`
+`Only PDF resumes are allowed`
+
+### ✅ Resume text extraction
+Confirmed from terminal/database inspection.
+
+### ✅ Resume text persistence
+`resume_text` confirmed populated in SQLite.
+
+### ⚪ Exact current implementation details
+Codex must inspect:
+- `models.py`
+- `resumes.py`
+- `resume_parser.py`
+- requirements
+
+because some code was previously suggested and later behavior was confirmed, but the exact current source must be verified.
+
+---
+
+# Git
+
+### ✅ Git repository initialized
+At project root.
+
+### ✅ Main branch
+Branch renamed to `main`.
+
+### ✅ GitHub push
+Earlier backend checkpoint successfully pushed.
+
+### ⚪ Latest backend parsing changes
+Latest screenshot showed modified/untracked files.
+
+First Codex action:
+```bash
+git status
+```
+
+Verify latest resume parser/model changes are preserved and not accidentally lost.
+
+---
+
+# Frontend
+
+### 🔵 React + Vite frontend
+Latest decision is to begin frontend development.
+
+Recommended stack:
+- React
+- Vite
+- JavaScript
+
+### ⚪ Frontend project existence
+Not confirmed before handoff.
+
+Codex must inspect whether:
+`frontend/`
+already exists.
+
+---
+
+# AI / ML
+
+### 🔵 Resume cleaning / normalization
+Not started.
+
+### 🔵 Skill extraction
+Postponed until after frontend foundation.
+
+### 🔵 Career/job matching
+Not started.
+
+### 🔵 AI recommendations
+Not started.
+
+### 🔵 AI provider/model selection
+Not decided.
+
+---
+
+# Current Task
+
+**Frontend-first development.**
+
+First checkpoint:
+
+1. Inspect repository.
+2. Protect existing backend changes.
+3. Verify whether frontend exists.
+4. If not, create React + Vite frontend.
+5. Start frontend.
+6. Confirm default React page loads.
+7. Teach the user what Vite, React, npm, `package.json`, `src`, and the dev server are.
+
+---
+
+# Next Major Checkpoints
+
+1. Frontend project running.
+2. Clean default Vite UI.
+3. Create project page/component structure.
+4. Build Register page.
+5. Build Login page.
+6. Configure backend CORS.
+7. Connect registration.
+8. Connect login.
+9. Handle JWT.
+10. Create dashboard.
+11. Connect `/users/me`.
+12. Add resume upload UI.
+13. Upload PDF end-to-end from browser.
+14. Add resume retrieval API if needed.
+15. Resume skill extraction.
+16. Career matching.
+17. AI recommendations.

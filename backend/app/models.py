@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, Integer, String
-
+from sqlalchemy import Text
 from app.database import Base
 from datetime import datetime, timezone
 
@@ -21,6 +21,7 @@ class Resume(Base):
     original_filename = Column(String, nullable=False)
     stored_filename = Column(String, unique=True, nullable=False)
     file_path = Column(String, nullable=False)
+    resume_text = Column(Text, nullable=True)
 
     user_id = Column(
         Integer,
@@ -34,6 +35,3 @@ class Resume(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-
-
-    // nani 

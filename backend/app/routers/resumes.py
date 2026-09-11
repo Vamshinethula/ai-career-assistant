@@ -1,7 +1,8 @@
 import shutil
 from pathlib import Path
 from uuid import uuid4
-
+from app.services.resume_parser import extract_text_from_pdf
+from app.services.skill_extractor import extract_skills
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -17,6 +18,52 @@ router = APIRouter(
 
 UPLOAD_DIRECTORY = Path("uploads")
 UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
+
+
+@router.get("", response_model=list[schemas.ResumeResponse])
+def list_resumes(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return (
+        db.query(models.Resume)
+        .filter(models.Resume.user_id == current_user.id)
+        .order_by(models.Resume.uploaded_at.desc(), models.Resume.id.desc())
+        .all()
+    )
+
+
+def get_owned_resume(resume_id: int, db: Session, user_id: int) -> models.Resume:
+    resume = db.query(models.Resume).filter(
+        models.Resume.id == resume_id,
+        models.Resume.user_id == user_id,
+    ).first()
+    if resume is None:
+        raise HTTPException(status_code=404, detail="Resume not found")
+    return resume
+
+
+@router.get("/{resume_id}", response_model=schemas.ResumeDetailResponse)
+def get_resume(
+    resume_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return get_owned_resume(resume_id, db, current_user.id)
+
+
+@router.get("/{resume_id}/skills", response_model=schemas.ResumeSkillsResponse)
+def get_resume_skills(
+    resume_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    resume = get_owned_resume(resume_id, db, current_user.id)
+    return schemas.ResumeSkillsResponse(
+        resume_id=resume.id,
+        text_available=bool(resume.resume_text and resume.resume_text.strip()),
+        skills=extract_skills(resume.resume_text),
+    )
 
 
 @router.post(
@@ -61,6 +108,7 @@ def upload_resume(
                 output_file,
             )
     except OSError:
+        destination.unlink(missing_ok=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to save the uploaded resume",
@@ -76,10 +124,15 @@ def upload_resume(
     )
 
     try:
+        new_resume.resume_text = extract_text_from_pdf(str(destination))
         db.add(new_resume)
+        # Populate generated fields and validate the response before committing.
+        # A flush writes within the transaction; rollback can still undo it.
+        db.flush()
+        result = schemas.ResumeResponse.model_validate(new_resume)
         db.commit()
-        db.refresh(new_resume)
     except Exception:
+        # Parser, schema and database failures all require the same cleanup.
         db.rollback()
 
         if destination.exists():
@@ -90,4 +143,4 @@ def upload_resume(
             detail="Unable to save resume information",
         )
 
-    return new_resume
+    return result
