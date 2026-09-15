@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getResumes } from '../services/api'
 import ResumeText from './ResumeText'
 import ResumeSkills from './ResumeSkills'
+import ResumeMatches from './ResumeMatches'
 
 function ResumeList({ accessToken, onSessionExpired }) {
   const [resumes, setResumes] = useState(null)
@@ -9,6 +10,7 @@ function ResumeList({ accessToken, onSessionExpired }) {
   const [attempt, setAttempt] = useState(0)
   const [selectedId, setSelectedId] = useState(null)
   const [skillsId, setSkillsId] = useState(null)
+  const [matchesId, setMatchesId] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -65,6 +67,17 @@ function ResumeList({ accessToken, onSessionExpired }) {
                 </button>
               </p>
               {skillsId === resume.id && <ResumeSkills resumeId={resume.id}
+                accessToken={accessToken} onSessionExpired={onSessionExpired} />}
+              <p>
+                <button type="button" className="form-submit"
+                  aria-expanded={matchesId === resume.id}
+                  aria-controls={matchesId === resume.id ? `resume-matches-${resume.id}` : undefined}
+                  aria-label={`${matchesId === resume.id ? 'Hide' : 'View'} role overlaps for ${resume.original_filename}`}
+                  onClick={() => setMatchesId(matchesId === resume.id ? null : resume.id)}>
+                  {matchesId === resume.id ? 'Hide role overlaps' : 'View role overlaps'}
+                </button>
+              </p>
+              {matchesId === resume.id && <ResumeMatches resumeId={resume.id}
                 accessToken={accessToken} onSessionExpired={onSessionExpired} />}
             </li>
           ))}

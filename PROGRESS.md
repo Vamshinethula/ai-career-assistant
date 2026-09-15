@@ -1,5 +1,64 @@
 # PROGRESS.md — AI Career Assistant
 
+## Private JWT configuration - 2026-09-15
+
+- Confirmed working: 44 backend tests and Chrome smoke pass; dotenv file loading, environment precedence, missing/short-key rejection, startup failure, token signature/expiry and setup idempotence verified. pip check passes.
+- Added app/config.py, scripts/init_local_env.py and safe .env.example. Installed/pinned python-dotenv 1.2.3. Generated ignored backend/.env without printing its value; existing files are never overwritten. Removed hardcoded current signing key, kept HS256/30 minutes. No account/password/resume changes.
+- Tests now use independent generated keys. Old key remains in Git history but is retired for new app startups; existing sessions require login after backend restart.
+- Scope estimate: local portfolio MVP roughly 65–75% complete; broader deployed/hardened scope roughly 45–55%. At 1–2 focused hours/day, estimated 14–28 more days for local portfolio polish or 28–56 for deployed scope; uncertain and scope-dependent.
+- Next: upload size/page limits and clear failure responses, then migration plan and deployment setup. Work remains uncommitted; normal backend should be restarted to load the new key.
+
+
+## Project README checkpoint - 2026-09-15
+
+- Added root README with verified feature scope, architecture, Windows setup, API/Postman instructions, tests, demo steps, troubleshooting and current limitations. Replaced Vite-template frontend README with project guidance.
+- Confirmed working: relative documentation links exist, installed backend versions match requirement pins, pip check reports no broken requirements. Setup commands checked against actual app/scripts and prior test runs. Fresh-machine dependency installation remains unverified.
+- No application or dependency changes this checkpoint; prior 40-test/build/lint/browser results retained rather than rerun for prose edits.
+- Next: review/commit accumulated checkpoint, then move hardcoded JWT configuration to environment variables with compatibility and startup tests. Existing account data untouched; work uncommitted.
+
+
+## Authentication warning resolved - 2026-09-15
+
+- Confirmed working: 40 backend tests pass without Passlib/bcrypt warning; legacy synthetic Passlib hashes verify (ASCII/Unicode/long/multibyte boundary), new random salts/cost 12, invalid input/hash handling and HTTP 422 registration limits. Existing saved hashes untouched.
+- Confirmed working: frontend build/lint and Chrome smoke test including too-long-password feedback/recovery and full workflow. User also reported prior browser smoke PASS.
+- security.py now uses existing bcrypt 4.3.0 directly. Removed Passlib from requirements, preserving other pins; normalized requirements from UTF-16 to UTF-8. Existing environment may still contain unused Passlib; application no longer imports it.
+- New registrations accept nonempty passwords up to 72 UTF-8 bytes without nulls. Login retains historical first-72-byte behavior for existing long passwords and historical 4096-character ceiling. No hash migration or database edits.
+- Next: review/commit pending role/browser/auth checkpoint, then portfolio setup documentation. Changes remain uncommitted.
+
+
+## Real browser workflow verified - 2026-09-15
+
+- Confirmed working: automated headless Chrome registration/login, actual app CORS communication, synthetic PDF upload, list refresh, text, skills, role results/counts, blocked-network error/retry, logout, and no horizontal overflow at 390px. Smoke command exited 0.
+- Added repeatable browser_smoke.mjs and isolated browser_server.py plus BROWSER_TEST.md. Uses temporary browser profile/uploads, in-memory DB and browser-only API redirect to port 8001. Existing backend on 8000 and personal data preserved; test processes/storage cleaned up.
+- Supersedes prior pending browser checks for the tested paths. Full visual/accessibility review, expiry UI and rapid selection races remain outside this smoke test. Existing bcrypt warning remains unresolved.
+- Next: review and commit role-matching/browser-test checkpoint, then address authentication dependency warning as a separate maintenance step. Application code/dependencies unchanged this session; work uncommitted.
+
+
+## Full API workflow verified - 2026-09-14
+
+- Confirmed working: 35 backend tests pass. New isolated flow tests cover registration/login/profile, empty list, real multipart synthetic PDF upload, persisted file/text, skill results, role ranking, second-account isolation, missing auth, wrong password and corrupt-upload cleanup.
+- Tests exercise real routers, hashing/JWT, parsing and SQLite via ASGI, with temporary files and an in-memory database. Existing personal account/database/uploads were untouched. Main app startup, browser/CORS and React interactions are outside this test scope.
+- Existing Passlib/bcrypt metadata warning recurred; auth tests pass, warning remains open. No dependency or application-code changes this checkpoint.
+- Next: browser upload -> text -> skills -> role overlaps check, then commit the verified role-matching checkpoint. Browser confirmation remains pending; work uncommitted.
+
+
+## Role overlaps dashboard - 2026-09-14
+
+- Confirmed working: frontend build/lint and client checks for authenticated GET, populated and three empty-result cases, 401/404/500, malformed schema/JSON, network failure and cancellation.
+- Implemented but unverified in browser: View/Hide role overlaps, ranked results with percentages/counts, matched/not-detected skills, loading/retry/session handling. Text and skills panels remain available independently.
+- Backend unchanged this checkpoint; prior 33-test result retained. Manual Postman matches confirmation and browser text/skills/role checks are pending.
+- Next: verify role display against API results, then review end-to-end behavior before adding features. Prior role backend edits preserved. No new dependencies/schema changes; work uncommitted.
+
+
+## Role matching backend - 2026-09-11
+
+- Confirmed starting state: main synchronized with origin/main at 0836d5e; working tree was clean.
+- Confirmed working: 33 backend tests pass. Added six role-service and three HTTP tests covering full/partial/zero overlap, duplicate handling, ranking/ties, catalog integrity, ownership/auth, empty text, no role matches and unchanged stored text.
+- Added four illustrative profiles and GET /resumes/{resume_id}/matches. Returns extracted skills, overlap percentages, matched and not-detected profile terms, method and catalog labels. No live jobs, AI provider, dependency or database changes.
+- Implemented but unverified: user Postman/browser use of the new matches endpoint. Frontend matching UI is not started. Earlier text/skills browser confirmation remains pending.
+- Next: test matches in Postman, then display illustrative role overlaps on dashboard with clear limitations. This checkpoint is uncommitted; prior work was pushed as 0836d5e.
+
+
 ## Git checkpoint preparation - 2026-09-11
 
 User requested commit and push of all work so far. Re-ran 24 backend tests, frontend build and lint successfully. Verified runtime/private files are ignored and no token-pattern matches were found. Checkpoint includes frontend authentication/dashboard/upload/text/skills, backend parsing/retrieval/skills, regression tests, evaluation and learning notes. Browser text/skills checks remain pending. Next development checkpoint: define illustrative roles and transparent overlap scoring. Commit/push outcome is recorded in Git history and the session response.

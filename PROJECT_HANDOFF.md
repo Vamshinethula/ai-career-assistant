@@ -1,5 +1,40 @@
 # PROJECT_HANDOFF.md --- AI Career Assistant
 
+## Latest checkpoint - Environment JWT key, 2026-09-15
+
+Added explicit backend/.env loading with python-dotenv 1.2.3; environment JWT_SECRET_KEY wins, absent/blank/under-32-byte values fail startup. init_local_env.py creates a random key only if no .env exists; generated local .env is ignored and never printed. jwt_handler.py now loads config, retaining HS256 and 30 minutes. Test key isolated in test_environment.py and browser_server.py. Forty-four tests, browser smoke, setup idempotence and pip check pass. Restart normal backend/login to use new key. No account hashes or database changes; retired key still in history, no history rewrite. Next: upload resource limits and targeted failure tests, then migrations/deployment. User received scope-based completion/time estimates recorded in ROADMAP.md. Work uncommitted.
+
+
+## Latest checkpoint - Project README, 2026-09-15
+
+Added root README.md and replaced frontend template README. Documents setup directories, current API/features, test commands, architecture and local-dev limits (including hardcoded JWT configuration, no env loader, no upload limits/migrations). Verified relative links, installed pins and pip check. Fresh-machine installation not tested. No app changes; prior 40-test/build/lint/Chrome results retained. Next: checkpoint review/commit, then environment-based JWT config and startup validation. Existing uncommitted role/auth/browser work preserved.
+
+
+## Latest checkpoint - Direct bcrypt compatibility fix, 2026-09-15
+
+Reproduced Passlib 1.7.4 metadata warning with bcrypt 4.3.0. Replaced CryptContext usage with bcrypt hashpw/checkpw; kept bcrypt pin and cost 12. Legacy password verification explicitly truncates UTF-8 bytes at 72, preserving old hashes; new registration rejects empty/null/over-72-byte input with 422 and frontend feedback. Four synthetic legacy fixtures captured using old code; no real user hashes accessed/changed. Removed Passlib requirement; requirements encoding normalized UTF-16 -> UTF-8. No package installation/uninstallation occurred. Forty backend tests, build/lint and Chrome workflow including password-length validation pass. Prior browser-smoke user PASS recorded. Next: checkpoint review/commit and portfolio setup docs. All prior uncommitted changes preserved.
+
+
+## Latest checkpoint - Real Chrome verification, 2026-09-15
+
+Automated browser workflow now passes with installed Chrome: registration/login, actual React/CORS, PDF upload/list/text/skills/role percentages, network error/retry, logout and 390px overflow check. Added backend/tests/browser_smoke.mjs, browser_server.py and BROWSER_TEST.md. Run Node script from root. Requires ports 8001/9223 free; reuses frontend 5173 or starts it. Test-only Chrome requests redirect 8000 to isolated real FastAPI app on 8001, in-memory DB/temp uploads. Existing app server/data untouched; temporary processes/storage removed. Initial 8000 collision led to isolated-port design. Prior browser gaps are closed for these paths, not full visual/accessibility/expiry/race review. Existing bcrypt warning remains open. Next: checkpoint review/commit, then targeted auth-dependency maintenance. No dependency/application changes this session; prior uncommitted work preserved.
+
+
+## Latest checkpoint - Full API workflow tests, 2026-09-14
+
+Added backend/tests/test_resume_flow.py. Tests register/login through actual routes, upload a synthetic PDF through multipart HTTP, verify stored bytes/text/skills/role output and second-account isolation. Failure test covers wrong password, missing auth and corrupt-file cleanup. All 35 backend tests pass. Uses test FastAPI app with real routers, in-memory DB and temporary storage; no production database touched. Browser/CORS/main app startup not covered. Existing bcrypt metadata warning recurred but auth passed. Next: browser flow review and commit role-matching checkpoint. No application/dependency changes this session; previous uncommitted role/UI work preserved.
+
+
+## Latest checkpoint - Role overlaps UI, 2026-09-14
+
+Added ResumeMatches.jsx, getResumeMatches and View/Hide role overlaps in ResumeList. Shows example role title, overlap percentage and detected count, matched/not-detected terms, and limitations. Handles missing text, no extracted skills, no matching profiles, retry/401/cancellation. One role panel open at a time independently of text/skills. Build/lint and isolated client tests pass; actual browser interaction unverified. Backend unchanged (prior 33 tests passed). Next: compare dashboard/API results and run manual end-to-end checkpoint. Role backend and current UI work uncommitted; 0836d5e remains the last pushed checkpoint.
+
+
+## Latest checkpoint - Illustrative role matching, 2026-09-11
+
+Prior work committed/pushed as 0836d5e; this session started clean. Added services/role_matcher.py with four five-skill example profiles (Python backend, React frontend, Java backend, Python data analysis). Canonical skill set intersection determines percentage overlap; returns positive overlaps sorted descending then role_id, plus matched/not_detected skills. GET /resumes/{resume_id}/matches reuses extraction and ownership lookup. Response labels skill_overlap and illustrative_v1. All 33 backend tests pass with synthetic data; no live database changes or new dependencies. Next: Postman check, then dashboard integration. This checkpoint uncommitted; earlier browser skills/text checks remain unverified.
+
+
 ## Git checkpoint preparation - 2026-09-11
 
 User authorized commit and push to origin/main. Final checks passed: 24 backend tests, frontend build/lint, ignored private/runtime artifacts and token-pattern scan. This checkpoint supersedes prior uncommitted notes once committed; inspect Git history/status for the final result. Resume next with illustrative role definitions and overlap scoring. Browser text/skills interaction remains unverified.

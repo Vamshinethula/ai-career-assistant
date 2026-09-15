@@ -1,4 +1,5 @@
 import json
+import test_environment  # Configure a test key before importing authentication.
 import unittest
 from datetime import datetime, timedelta, timezone
 
@@ -123,6 +124,41 @@ class ResumeListTests(unittest.IsolatedAsyncioTestCase):
         foreign = await self.get(1, path='/resumes/2/skills')
         self.assertEqual(foreign, (404, {'detail': 'Resume not found'}))
         self.assertEqual(foreign, await self.get(1, path='/resumes/999/skills'))
+
+    async def test_matches_explain_overlap_and_preserve_resume(self):
+        with Session(self.engine) as db:
+            db.get(models.Resume, 1).resume_text = 'Python, FastAPI, SQL, Git, Docker'
+            db.commit()
+        status, body = await self.get(1, path='/resumes/1/matches')
+        self.assertEqual(status, 200)
+        self.assertEqual(body['resume_id'], 1)
+        self.assertEqual(body['catalog'], 'illustrative_v1')
+        self.assertEqual(body['method'], 'skill_overlap')
+        self.assertTrue(body['text_available'])
+        self.assertEqual(body['extracted_skills'], ['Docker', 'FastAPI', 'Git', 'Python', 'SQL'])
+        self.assertEqual(body['matches'][0]['role_id'], 'python_backend')
+        self.assertEqual(body['matches'][0]['skill_overlap_percent'], 100.0)
+        self.assertEqual(body['matches'][0]['not_detected_skills'], [])
+        with Session(self.engine) as db:
+            self.assertEqual(db.get(models.Resume, 1).resume_text, 'Python, FastAPI, SQL, Git, Docker')
+
+    async def test_matches_require_auth_and_owner(self):
+        self.assertEqual((await self.get(path='/resumes/1/matches'))[0], 401)
+        self.assertEqual((await self.get(invalid=True, path='/resumes/1/matches'))[0], 401)
+        foreign = await self.get(1, path='/resumes/2/matches')
+        self.assertEqual(foreign, (404, {'detail': 'Resume not found'}))
+        self.assertEqual(foreign, await self.get(1, path='/resumes/999/matches'))
+
+    async def test_matches_empty_text_or_no_role_overlap(self):
+        for text, skills in [(None, []), ('', []), ('Carpentry', []), ('Kubernetes', ['Kubernetes'])]:
+            with Session(self.engine) as db:
+                db.get(models.Resume, 1).resume_text = text
+                db.commit()
+            status, body = await self.get(1, path='/resumes/1/matches')
+            self.assertEqual(status, 200)
+            self.assertEqual(body['text_available'], bool(text))
+            self.assertEqual(body['extracted_skills'], skills)
+            self.assertEqual(body['matches'], [])
 
     async def test_skills_distinguish_missing_text_from_no_matches(self):
         for text, available in [(None, False), ('', False), (' \n', False), ('Carpentry', True)]:

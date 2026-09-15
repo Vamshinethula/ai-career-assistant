@@ -12,6 +12,10 @@ function RegisterForm() {
   async function handleSubmit(event) {
     event.preventDefault()
     if (isSubmitting) return
+    if (new TextEncoder().encode(password).length > 72 || password.includes('\0')) {
+      setMessage('Use a password up to 72 bytes (some characters use more than one byte), without null characters.')
+      return
+    }
     setIsSubmitting(true)
     setMessage('')
     try {

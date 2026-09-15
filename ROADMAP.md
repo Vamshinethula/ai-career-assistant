@@ -1,5 +1,34 @@
 # ROADMAP.md — AI Career Assistant
 
+## Scope estimate and next checkpoints - 2026-09-15
+
+Planning estimate, not a measured completion metric: roughly 65–75% of a portfolio-ready local MVP is complete; roughly 45–55% of a broader deployed/hardened project. Completed foundation includes auth, React/API integration, resume text/skills, illustrative role overlap, evaluation, API/browser tests, documentation and private JWT configuration.
+
+Assuming 1–2 focused hours per day: allow about 14–28 additional days for a polished local portfolio demo, or 28–56 for deployment with further hardening. Learning pace, hosting decisions and scope changes can extend this. Real job data and optional LLM/ML integration are additional scope; no provider/budget has been chosen.
+
+Remaining sequence: upload byte/page limits and errors; schema migration approach; UI/accessibility/portfolio presentation; clean-machine setup and deployment configuration; deployment verification. Representative extraction evaluation and broader role requirements remain improvements. JWT config is now implemented with 44 backend tests and passing Chrome smoke. Next small checkpoint: upload resource limits. Current changes are uncommitted.
+
+
+## Authentication maintenance update - 2026-09-15
+
+Passlib metadata warning resolved using direct bcrypt with legacy compatibility tests and registration byte-limit validation. Forty backend tests and Chrome flow pass. Next: checkpoint review/commit and portfolio setup documentation.
+
+
+## Browser checkpoint update - 2026-09-15
+
+Automated real-Chrome happy flow and network-retry path verified with isolated data. Next: commit checkpoint after review, then resolve known bcrypt/Passlib compatibility warning in a focused maintenance task. Broader visual/accessibility and session-edge checks remain future verification.
+
+
+## Role display update - 2026-09-14
+
+Dashboard role overlaps implemented; build/lint and client checks passed. Next: manual browser/API comparison and end-to-end verification before extending the product. Earlier role-backend checkpoint is preserved.
+
+
+## Role matching update - 2026-09-11
+
+Backend role overlap implemented using four authored example profiles; 33 tests pass. Next: Postman verification and dashboard role display. Profiles are illustrative, without job-market or hiring claims; live job sources remain undecided.
+
+
 ## Evaluation update - 2026-09-11
 
 Synthetic matcher evaluation completed with a targeted alias fix and documented context/catalog limitations. Next: define a small illustrative role catalog and transparent overlap-based matching, with no claim of live job data or hiring suitability. Browser skills/text verification still pending.

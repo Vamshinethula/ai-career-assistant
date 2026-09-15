@@ -1,0 +1,22 @@
+[
+  {
+    "label": "ascii",
+    "password": "synthetic-test-password",
+    "hash": "$2b$12$tTQC1QVEdmowxI1QelxuDOiJGlH2Atx1ElAHV6EZy8aZh1roHRoEK"
+  },
+  {
+    "label": "unicode",
+    "password": "Synthetic-caf\u00e9-\u5bc6\u7801",
+    "hash": "$2b$12$qGIIWq2lKBAJwHZsNE/v.OdRM1RTdcDF2AdaGMOvlL89Wg2kxtUuG"
+  },
+  {
+    "label": "legacy_long",
+    "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "hash": "$2b$12$kPjQZ8cJV/dgfkuNeiy.gOPpupf1w02qBoF7Z1XZkRGSd91lELvqi"
+  },
+  {
+    "label": "legacy_multibyte_boundary",
+    "password": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u00e9-tail",
+    "hash": "$2b$12$Yr8o8ewC4XwFClbO5zDy8uAhY9yCQr0NKZBbxPSYsjPwEHtrDsxyG"
+  }
+]

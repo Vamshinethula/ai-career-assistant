@@ -129,6 +129,31 @@ export async function getResumeSkills(resumeId, accessToken, signal) {
   return result
 }
 
+export async function getResumeMatches(resumeId, accessToken, signal) {
+  const result = await requestJson(`/resumes/${resumeId}/matches`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  }, {
+    401: 'Your session is no longer valid. Please log in again.',
+    404: 'This resume is no longer available.',
+    default: 'Could not load role overlaps. Please try again.',
+  })
+  const isSkillList = (value) => Array.isArray(value)
+    && value.every((skill) => typeof skill === 'string' && skill.trim())
+  if (result?.resume_id !== resumeId || result.method !== 'skill_overlap'
+      || result.catalog !== 'illustrative_v1' || typeof result.text_available !== 'boolean'
+      || !isSkillList(result.extracted_skills) || !Array.isArray(result.matches)
+      || result.matches.some((match) => typeof match?.role_id !== 'string'
+        || typeof match.title !== 'string' || !Number.isFinite(match.skill_overlap_percent)
+        || match.skill_overlap_percent < 0 || match.skill_overlap_percent > 100
+        || !isSkillList(match.matched_skills) || !isSkillList(match.not_detected_skills))
+      || (!result.text_available && (result.extracted_skills.length || result.matches.length))) {
+    throw new Error('The server returned unexpected role results. Please try again.')
+  }
+  return result
+}
+
 export async function loginUser(credentials) {
   const result = await postJson('/auth/login', credentials, {
     401: 'Invalid email or password.',

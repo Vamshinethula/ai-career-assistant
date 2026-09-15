@@ -220,3 +220,25 @@ Root cause: each alias matched independently; Java matched inside the spaced Jav
 Fix: gather alias spans and accept longer nonoverlapping spans first. Separate mentions still match.
 Verified: evaluation supported exact sets improved 12/13 to 13/13; dedicated overlap and full regression tests pass (24 tests).
 Prevention: retain the evaluation fixture and a separate-Java regression. Ordinary-word React ambiguity and uncatalogued Kotlin remain limitations, not resolved by this fix.
+
+## 2026-09-14 - Existing bcrypt warning reconfirmed
+
+During full API-flow tests, the previously documented Passlib warning recurred: AttributeError: module 'bcrypt' has no attribute '__about__'. Registration, correct-password login and wrong-password rejection passed; all 35 tests passed. Status remains open for dependency maintenance. No suppression or dependency change was made.
+
+## 2026-09-15 - Browser test port collision
+
+Exact error: Port 8000 is in use; stop its dev server before this test.
+Context: first browser-smoke attempt tried to reserve the normal backend port.
+Cause: an existing application server occupied it; sandbox listener inspection did not reveal it.
+Fix: isolated test backend now uses port 8001; only the temporary Chrome session redirects its API requests. Existing server was not stopped.
+Verified: rerun completed the actual browser workflow with PASS/exit 0 and cleaned up temporary processes/data.
+Lesson: do not assume missing process-list output means a port is free; check binding and isolate tests from normal services.
+
+## 2026-09-15 - Passlib/bcrypt warning resolved
+
+Exact reproduced error: AttributeError: module 'bcrypt' has no attribute '__about__', under (trapped) error reading bcrypt version.
+Root cause: installed Passlib 1.7.4 wrapper expects metadata absent in bcrypt 4.3.0.
+Fix: use bcrypt directly, keep algorithm/cost and legacy verification semantics, remove Passlib requirement. Validate new password lengths before hashing.
+Verified: 40 backend tests pass with no metadata warning; legacy synthetic hashes and HTTP login succeed; build/lint and Chrome password-validation/full-flow test pass. This supersedes prior open warning entries.
+Prevention: compatibility fixtures and explicit byte-limit tests. Existing account hashes and database untouched.
+Editing note: requirements.txt was UTF-16 and rejected by the UTF-8 patch tool; read with BOM detection and saved as UTF-8 while removing only the Passlib pin. No dependency upgrades performed.

@@ -1,5 +1,54 @@
 # CHANGELOG.md — AI Career Assistant
 
+## 2026-09-15 - Environment-based JWT configuration
+
+- Removed hardcoded active signing key; added private dotenv/environment configuration and startup validation.
+- Added non-overwriting local key generator, safe example file and isolated test keys; installed python-dotenv 1.2.3.
+- Forty-four backend tests and Chrome workflow pass; documented session invalidation and setup steps.
+
+
+## 2026-09-15 - Project setup documentation
+
+- Added root README with setup, architecture, demo, API, tests and known limitations.
+- Replaced frontend starter README with project-specific guidance.
+- Verified local links, installed requirement pins and dependency consistency; fresh-machine setup not tested.
+
+
+## 2026-09-15 - Resolve Passlib/bcrypt warning
+
+- Use bcrypt directly with existing hash format/cost; remove Passlib requirement.
+- Preserve legacy long-password verification; validate new registrations at 72 UTF-8 bytes with readable frontend feedback.
+- Added synthetic compatibility fixtures and regression/browser checks. Forty backend tests, build/lint and Chrome smoke pass. No database/hash migration.
+
+
+## 2026-09-15 - Real browser smoke verification
+
+- Added repeatable Chrome workflow test using actual frontend/backend with isolated data.
+- Verified account creation through role results, network failure/retry, mobile overflow and logout.
+- Documented test setup and limits; existing normal server and personal data preserved.
+
+
+## 2026-09-14 - Verify complete API workflow
+
+- Added isolated HTTP workflow tests spanning registration through role results and cross-user isolation.
+- Verified wrong-login/missing-auth/corrupt-upload failure paths; all 35 backend tests pass.
+- Existing bcrypt warning remains unresolved; browser end-to-end verification pending.
+
+
+## 2026-09-14 - Dashboard role overlaps
+
+- Added on-demand illustrative role results with scores, counts, matched/not-detected skills and clear limitations.
+- Added loading/retry/error/session handling and separate empty states.
+- Frontend build/lint and isolated client checks pass; browser verification pending.
+
+
+## 2026-09-11 - Illustrative role matching API
+
+- Added four local example role profiles and explainable skill-overlap scoring.
+- Added protected matches endpoint and structured role responses, with matched/not-detected terms.
+- All 33 backend tests pass; frontend integration is next. No schema migration, external API or dependency change.
+
+
 ## 2026-09-11 - Evaluate skill matcher
 
 - Added synthetic evaluation cases, metrics runner and documented before/after results.

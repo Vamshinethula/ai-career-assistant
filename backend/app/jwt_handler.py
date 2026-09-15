@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta, timezone
 
 from jose import jwt
+from app.config import load_jwt_secret
 
 
-SECRET_KEY = "change-this-secret-key-later"
+SECRET_KEY = load_jwt_secret()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

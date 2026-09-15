@@ -1,12 +1,19 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class UserCreate(BaseModel):
     full_name: str
     email: EmailStr
     password: str
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not value or '\x00' in value or len(value.encode('utf-8')) > 72:
+            raise ValueError('Password must be 1–72 UTF-8 bytes and contain no null characters')
+        return value
 
 
 class UserResponse(BaseModel):
@@ -47,4 +54,21 @@ class ResumeSkillsResponse(BaseModel):
     method: Literal["rule_based"] = "rule_based"
     text_available: bool
     skills: list[str]
+
+
+class RoleMatchResponse(BaseModel):
+    role_id: str
+    title: str
+    skill_overlap_percent: float = Field(ge=0, le=100)
+    matched_skills: list[str]
+    not_detected_skills: list[str]
+
+
+class ResumeRoleMatchesResponse(BaseModel):
+    resume_id: int
+    method: Literal["skill_overlap"] = "skill_overlap"
+    catalog: Literal["illustrative_v1"] = "illustrative_v1"
+    text_available: bool
+    extracted_skills: list[str]
+    matches: list[RoleMatchResponse]
 

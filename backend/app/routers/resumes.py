@@ -3,6 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 from app.services.resume_parser import extract_text_from_pdf
 from app.services.skill_extractor import extract_skills
+from app.services.role_matcher import match_roles
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -63,6 +64,22 @@ def get_resume_skills(
         resume_id=resume.id,
         text_available=bool(resume.resume_text and resume.resume_text.strip()),
         skills=extract_skills(resume.resume_text),
+    )
+
+
+@router.get("/{resume_id}/matches", response_model=schemas.ResumeRoleMatchesResponse)
+def get_resume_matches(
+    resume_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    resume = get_owned_resume(resume_id, db, current_user.id)
+    skills = extract_skills(resume.resume_text)
+    return schemas.ResumeRoleMatchesResponse(
+        resume_id=resume.id,
+        text_available=bool(resume.resume_text and resume.resume_text.strip()),
+        extracted_skills=skills,
+        matches=match_roles(skills),
     )
 
 

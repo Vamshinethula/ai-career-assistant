@@ -1,5 +1,80 @@
 # LEARNING_LOG.md — AI Career Assistant
 
+## 2026-09-15 - Configuration versus code
+
+JWT signing keys belong outside source code. app/config.py reads JWT_SECRET_KEY from the environment or an explicitly located backend/.env using python-dotenv; environment values win. Startup rejects missing/short keys rather than using a shared fallback. scripts/init_local_env.py uses Python secrets to create a private random key and exclusive file creation prevents overwriting it. .env.example contains no secret; .gitignore excludes the real file.
+
+Example: the same code can run locally with .env and on a host with an injected environment variable. A changed key cannot verify tokens signed with the old key, so users log in again. Password hashes and resume rows do not depend on the JWT key and remain unchanged. The old hardcoded key remains in Git history but is retired; history was not rewritten.
+
+From backend: .venv/Scripts/python.exe scripts/init_local_env.py, then .venv/Scripts/python.exe -m uvicorn app.main:app --reload. Setup has already generated the local file this session. Never paste its contents into chat or Git. Tests: .venv/Scripts/python.exe -m unittest discover -s tests -q -> 44 passing; node tests/browser_smoke.mjs -> PASS. Tests use random test-only keys. Invalid config should stop startup with a message naming JWT_SECRET_KEY without revealing a value. Source: https://github.com/theskumar/python-dotenv . You should now explain environment precedence, fail-fast configuration, key rotation and the difference between token invalidation and password storage.
+
+
+## 2026-09-15 - Write a runnable project README
+
+A README is the entry point for someone who has not seen the development conversation. Ours now explains what works, where code belongs, how to start both servers, what success looks like and what is still limited. Commands specify their starting folder because relative paths resolve from the terminal directory. Example: from root use node backend/tests/browser_smoke.mjs; from backend use node tests/browser_smoke.mjs.
+
+The setup uses the venv's Python directly, so activation is optional. npm ci uses the committed lockfile for frontend dependency installation. The database URL is relative to backend; starting there prevents creating a database in an unintended folder. The README distinguishes existing verification from untested clean-machine setup.
+
+Verification this checkpoint: all relative README links resolve, backend requirement pins equal installed versions, pip check passes. No source code changed. You should now explain setup documentation, working directories, lockfiles, and why a tested local environment is not proof of clean-machine reproducibility.
+
+
+## 2026-09-15 - Preserve password compatibility during maintenance
+
+Passlib wrapped bcrypt but expected removed bcrypt.__about__ metadata. security.py now calls the already-installed bcrypt library directly. hashpw combines password bytes with a random salt; checkpw verifies without storing/recovering plaintext. gensalt(rounds=12) preserves the prior work factor. Stored bcrypt hashes contain the salt and cost, so they need no database migration.
+
+Bcrypt processes at most 72 bytes. Bytes differ from characters: 36 copies of an accented e use 72 UTF-8 bytes. New registration rejects empty, null-containing or longer passwords at both backend validation and the form. Login preserves the prior first-72-byte behavior for historical long passwords; new hashing does not silently truncate. This is compatibility, not a new long-password security design. Invalid stored hashes fail verification rather than exposing an internal exception.
+
+Before editing, generated four synthetic hashes with the old Passlib code and saved them in tests/fixtures/legacy_bcrypt.json. These are public test values, never real account data. Tests verify those hashes through the new code, including a multibyte boundary. The old library is no longer a project requirement; it may remain unused in the local venv.
+
+Run from backend: .venv/Scripts/python.exe -m unittest discover -s tests -q -> 40 tests OK with no bcrypt metadata warning. From backend: node tests/browser_smoke.mjs; from root: node backend/tests/browser_smoke.mjs -> PASS including too-long-password feedback, valid registration and login. Restart the normal backend if reload is not active; existing credentials should still work. Chrome test uses isolated data.
+
+Sources: https://github.com/pyca/bcrypt and https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt.html . You should now explain salts, cost, byte limits, backward compatibility and regression fixtures. Next: review/commit checkpoint, then setup documentation.
+
+
+## 2026-09-15 - Browser tests versus API tests
+
+API tests call FastAPI directly; they cannot prove React event handlers or browser-origin rules work. The new browser_smoke.mjs drives installed Chrome through its debugging protocol, types into actual forms and checks rendered results. browser_server.py loads the real FastAPI app after configuring an in-memory database. A temporary browser profile redirects only test API traffic to port 8001, so port 8000 and personal data remain untouched.
+
+Example: browser selects a synthetic PDF -> React builds FormData -> real CORS/auth/upload/parser/database code runs -> success message and refreshed list appear -> text, skills and role counts are inspected. Blocking the role request produces a connection error; unblocking and clicking Try again restores results. Logout clears the displayed results. At 390px viewport the document fits without horizontal overflow.
+
+Run from root: node backend/tests/browser_smoke.mjs (or use the explicit Node path in backend/tests/BROWSER_TEST.md). Success: PASS summary and exit 0. Failure: nonzero exit with the failed/timed-out step. Test setup requires frontend dependencies, backend venv, Chrome, free ports 8001/9223, and this project's frontend on 5173 or a free 5173. It cleans up only its own processes and temporary directory. No new dependencies or real account uploads.
+
+Confirmed this run: full tested browser flow and recovery. Not covered: comprehensive visual/accessibility assessment, production networking, expiry UI and rapid-selection races. You should now explain why browser tests complement API tests and why test-data isolation matters.
+
+
+## 2026-09-14 - Integration tests across the workflow
+
+Unit tests check a small function, such as skill overlap. The new test_resume_flow.py checks connected behavior: create account -> obtain token -> upload PDF -> read list/text/skills/roles. It uses actual routers, password hashing, JWT authentication, PDF parser and database queries. This can catch disagreements between components that individual function tests miss.
+
+The test constructs a synthetic PDF containing Python FastAPI SQL Git Docker and uploads it as multipart form data. It verifies 201, persisted file bytes and text, five detected skills and 100% overlap with the illustrative Python backend profile. A second registered account receives an empty list and 404 for the first account's details/skills/matches. Wrong password and missing auth return 401; corrupt upload returns 500 and leaves no file or record.
+
+Run from backend: .venv/Scripts/python.exe -m unittest discover -s tests -v. Expected: 35 tests OK. The known bcrypt metadata warning may appear, but is not a failed assertion. Tests use temporary storage and an in-memory database; they do not need the development servers or access personal resumes. They call FastAPI through ASGI without a network socket; React, CORS and main-app startup are not exercised.
+
+Manual next check: with both servers running, log in at http://127.0.0.1:5173/, upload a disposable PDF, then open text, skills and role overlaps. Confirm outputs correspond to that file and logout returns to login. Start servers only if needed: backend .venv/Scripts/python.exe -m uvicorn app.main:app --reload; frontend npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort. You should now explain unit versus integration testing and why API-flow success does not prove browser behavior.
+
+
+## 2026-09-14 - Explain a score in the interface
+
+ResumeList owns matchesId; its View role overlaps button mounts ResumeMatches. The effect calls services/api.js with a bearer token and renders the structured result. Hiding/switching aborts the old request and ignores stale responses. The API client validates the resume ID, method/catalog labels, skill lists and score range before displaying data.
+
+Each profile displays matched count divided by total profile terms as well as the percentage. Example: Python and SQL matched out of five terms -> 40% overlap. Not detected terms are absent from extraction, not necessarily skills the user lacks. Empty text, no detected catalog skills and no profile overlap produce different messages. These are authored examples, not live vacancies or qualification judgments.
+
+With servers running, open http://127.0.0.1:5173/, log in, and click View role overlaps. Compare results with Postman for that resume's numeric ID. Check counts explain percentages; Hide role overlaps should close the panel. To test retry, block the /matches request in browser developer tools, open the panel, then unblock and click Try again. Check switching resumes during slow requests and logout while loading. Actual browser checks remain pending.
+
+Start servers only if needed: from backend, .venv/Scripts/python.exe -m uvicorn app.main:app --reload; from frontend, npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort. Build/lint and isolated client tests passed, including populated/empty/error/malformed/offline/cancellation cases. You should now explain conditional rendering, score explanations and why numerical overlap is not a confidence score.
+
+
+## 2026-09-11 - Explainable role overlap
+
+services/role_matcher.py contains four authored example profiles, not live vacancies or authoritative hiring requirements. Input is the canonical skills already extracted from a resume. Sets remove duplicate mentions. Intersection gives matched skills; profile minus detected skills gives not-detected skills. Score = matched count / profile skill count * 100. Example: Python and SQL overlap two of Python backend's five profile skills, yielding 40%; FastAPI, Git and Docker are not detected. Not detected is not proof of missing ability.
+
+routers/resumes.py adds GET /resumes/{resume_id}/matches. It checks the owner, extracts terms from stored text and calls the pure scoring function. schemas.py validates a structured response with catalog=illustrative_v1, method=skill_overlap, text_available, extracted_skills and matches. Roles with zero overlap are omitted; ties use stable role IDs. Repeated words never increase a score; unknown skills do not lower it. Scores reflect these manually chosen profiles, inherit extraction errors and do not estimate hiring chances or proficiency.
+
+Run tests from backend: .venv/Scripts/python.exe -m unittest discover -s tests -v. Expected: 33 tests OK. Start backend if needed: .venv/Scripts/python.exe -m uvicorn app.main:app --reload. In Postman first GET http://127.0.0.1:8000/resumes using your bearer token. Copy a resume's numeric id, not user_id. If it is 3, send GET http://127.0.0.1:8000/resumes/3/matches with the same token and no body; replace 3 with your actual ID. Expected 200 with matches; empty text or zero overlap yields an empty matches array. Missing token -> 401; another user's or nonexistent ID -> 404.
+
+These endpoint behaviors are verified in isolated ASGI tests; user Postman verification is pending. The dashboard does not display roles yet. You should now explain sets, intersection/difference, score denominators, deterministic tie ordering and the distinction between overlap and qualification.
+
+
 ## 2026-09-11 - Commit versus push
 
 A commit saves a named snapshot in local Git history. A push sends commits to the configured GitHub remote. We reviewed changed files and ignore rules, ran 24 backend tests plus frontend build/lint, then prepared a checkpoint for origin/main. Runtime databases, uploaded resumes, tokens and environments must stay out of the snapshot. Use git status to inspect local changes and git log -1 --oneline to identify the latest checkpoint. A successful push synchronizes the commit with GitHub; it does not deploy the application.

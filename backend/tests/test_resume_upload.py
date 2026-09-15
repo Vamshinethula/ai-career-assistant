@@ -1,4 +1,5 @@
 import io
+import test_environment  # Configure a test key before importing authentication.
 import tempfile
 import unittest
 from pathlib import Path

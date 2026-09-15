@@ -239,3 +239,34 @@ Chosen: 15 synthetic cases, reported by supported scope and known limitation pro
 Why: reproducible and local, with no sensitive data or new dependencies; fixes a demonstrated false positive.
 Tradeoffs: small, manually authored, tuned-on examples do not estimate real-world accuracy. Context ambiguity, negation/proficiency and catalog gaps remain.
 Revisit: independent labeled corpus or broader role-domain requirements.
+
+## D-021 - Illustrative role profiles and equal-weight overlap
+
+Date: 2026-09-11
+Context: need a first explainable matching checkpoint using extracted skills.
+Options: authored example catalog, external job feed, embeddings/LLM ranking.
+Chosen: four explicitly illustrative five-skill software profiles; equal-weight set overlap percentage, positive-overlap results only, stable role-ID ties. Compute on demand through an owner-protected GET endpoint, exposing matched and not-detected terms.
+Why: no external service, cost, migration or hidden scoring; straightforward to test and teach.
+Tradeoffs: profiles are simplified learning fixtures, not authoritative requirements; all terms weighted equally, no experience/seniority or inferred skills. Extractor false positives/negation affect scores. Low overlap may still produce a result; percentage is not confidence or hiring probability.
+Evaluation: exact synthetic partial/full/zero score checks, duplicate invariance, order/tie checks, canonical catalog integrity and API ownership/empty-state checks.
+Revisit: actual role data source, independently evaluated requirements, user domain needs or agreed model/provider.
+
+## D-022 - Direct bcrypt with explicit legacy compatibility
+
+Date: 2026-09-15
+Context: Passlib 1.7.4 reads missing bcrypt metadata and emits a trapped warning.
+Options: downgrade bcrypt, patch library metadata, replace wrapper with direct installed bcrypt, migrate password algorithm.
+Chosen: direct bcrypt 4.3.0 hashpw/checkpw, random salts and cost 12; remove unused Passlib requirement. New registrations reject empty/null/over-72-byte passwords with 422; login preserves historical UTF-8 truncation and 4096-character ceiling. Invalid hashes fail closed.
+Why: removes incompatible wrapper without new dependencies or database migration; compatibility proven with synthetic hashes generated before the change.
+Tradeoffs: legacy long-password equivalence remains for compatibility; bcrypt still has a 72-byte input limit. Local venv may retain unused Passlib. Modern algorithm migration remains a separate design task.
+Revisit: production auth review, long-password support, hash upgrades or new algorithm requirements.
+
+## D-023 - Private JWT configuration with dotenv fallback
+
+Date: 2026-09-15
+Context: signing key was hardcoded in source and must be retired without changing account data.
+Options: environment only; standard dotenv development fallback; custom parser.
+Chosen: python-dotenv 1.2.3 reads exact backend/.env; process JWT_SECRET_KEY takes precedence. Require at least 32 non-padding bytes; setup generates 48 random bytes encoded URL-safe. No insecure fallback. HS256 and 30-minute lifetime stay fixed.
+Why: standard parsing, simple local setup and deploy-time environment support. Generator refuses to overwrite existing files and never prints keys.
+Tradeoffs: one small dependency; key remains plaintext in an ignored local file and needs deployment secret storage later. Key rotation logs out issued sessions; account/password/resume data unchanged. Old key remains in historical commits but is retired.
+Revisit: deployment secret management, multiple signing keys/rotation windows or configuration growth.

@@ -1,16 +1,26 @@
-# React + Vite
+﻿# AI Career Assistant frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite dashboard for registration, login, PDF uploads, extracted text,
+skill mentions and illustrative role overlaps.
 
-Currently, two official plugins are available:
+See the [project README](../README.md) for complete setup, architecture,
+API usage, verification and limitations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+From this `frontend/` directory:
 
-## React Compiler
+```powershell
+npm.cmd ci
+npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+FastAPI must also run on `http://127.0.0.1:8000`. Open
+`http://127.0.0.1:5173/`. Reuse an existing server on that port.
 
-## Expanding the Oxlint configuration
+```powershell
+npm.cmd run build
+npm.cmd run lint
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+`src/services/api.js` owns requests and response validation. Components live in
+`src/components/`; login state lives in `App.jsx` and clears on refresh.
+The API address is currently fixed for local development.
