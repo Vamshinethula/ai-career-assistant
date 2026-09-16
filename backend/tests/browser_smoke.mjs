@@ -94,6 +94,19 @@ try {
   await command('Fetch.enable', { patterns: [{ urlPattern: 'http://127.0.0.1:8000/*', requestStage: 'Request' }] })
   await command('Page.navigate', { url: 'http://127.0.0.1:5173/' })
   await until(() => hasText('Create your account'), 'registration form')
+  const pressKey = async (key, code, virtualKey) => {
+    for (const type of ['keyDown', 'keyUp']) {
+      await command('Input.dispatchKeyEvent', { type, key, code, windowsVirtualKeyCode: virtualKey })
+    }
+  }
+  await pressKey('Tab', 'Tab', 9)
+  assert(await evaluate("document.activeElement.matches('.skip-link')"), 'First Tab reaches skip link')
+  assert(await evaluate("document.activeElement.getBoundingClientRect().top >= 0"), 'Focused skip link is visible')
+  await pressKey('Enter', 'Enter', 13)
+  assert(await evaluate("document.activeElement.id === 'workspace'"), 'Skip link focuses workspace')
+  await pressKey('Tab', 'Tab', 9)
+  assert(await evaluate("document.activeElement.id === 'full-name'"), 'Next Tab reaches registration input')
+  assert(!(await hasText('These features are coming')), 'Overview describes implemented features')
   await input('full-name', 'Browser Test User')
   await input('email', 'browser@example.com')
   await input('password', 'a'.repeat(73))
@@ -109,6 +122,15 @@ try {
   await until(() => hasText('Welcome, Browser Test User'), 'profile')
   const { root: dom } = await command('DOM.getDocument')
   const { nodeId } = await command('DOM.querySelector', { nodeId: dom.nodeId, selector: '#resume-file' })
+  for (const [filename, message] of [
+    ['oversized.pdf', 'Choose a PDF no larger than 5 MiB.'],
+    ['corrupt.pdf', 'Choose a nonempty, readable PDF without password protection.'],
+    ['too-many-pages.pdf', 'Choose a PDF no larger than 5 MiB and no more than 10 pages.'],
+  ]) {
+    await command('DOM.setFileInputFiles', { nodeId, files: [path.join(storage, filename)] })
+    await click('Upload resume')
+    await until(() => hasText(message), `rejection of ${filename}`)
+  }
   await command('DOM.setFileInputFiles', { nodeId, files: [path.join(storage, 'sample.pdf')] })
   await click('Upload resume')
   await until(() => hasText('Uploaded sample.pdf successfully.'), 'upload')
@@ -133,7 +155,7 @@ try {
   await click('Log out')
   await until(() => hasText('Create your account'), 'logout')
   assert(!(await hasText('100% skill overlap')))
-  console.log('PASS: real Chrome password validation, registration, login/CORS, upload, list, text, skills, roles, network failure/retry, mobile overflow, logout.')
+  console.log('PASS: real Chrome keyboard skip navigation, password validation, login/CORS, upload limits/errors/recovery, list, text, skills, roles, network failure/retry, mobile overflow, logout.')
 } finally {
   if (command && socket?.readyState === WebSocket.OPEN) {
     try { await command('Browser.close') } catch { /* process cleanup below */ }

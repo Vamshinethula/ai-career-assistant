@@ -23,4 +23,4 @@ npm.cmd run lint
 
 `src/services/api.js` owns requests and response validation. Components live in
 `src/components/`; login state lives in `App.jsx` and clears on refresh.
-The API address is currently fixed for local development.
+Set VITE_API_BASE_URL in .env.local to override the local API default. See .env.example. Restart Vite after edits; rebuild production output. VITE_ values are public: never put secrets there.

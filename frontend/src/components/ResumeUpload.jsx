@@ -20,6 +20,10 @@ function ResumeUpload({ accessToken, onSessionExpired, onUploaded }) {
       setError('Choose a nonempty PDF resume.')
       return
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Choose a PDF no larger than 5 MiB.')
+      return
+    }
     const controller = new AbortController()
     request.current = controller
     setPending(true)
@@ -41,7 +45,7 @@ function ResumeUpload({ accessToken, onSessionExpired, onUploaded }) {
   return (
     <section aria-labelledby="upload-title">
       <h3 id="upload-title">Upload your resume</h3>
-      <p>Choose a PDF with selectable text. Each upload saves a new resume.</p>
+      <p>Choose a PDF with selectable text, up to 5 MiB and 10 pages, without password protection. Each upload saves a new resume.</p>
       <form className="registration-form" onSubmit={handleSubmit} aria-busy={pending}>
         <div className="form-field">
           <label htmlFor="resume-file">PDF resume</label>

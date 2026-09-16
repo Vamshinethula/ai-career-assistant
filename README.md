@@ -39,8 +39,8 @@ flowchart LR
 ## Setup: Windows PowerShell
 
 Tested environment: Python 3.12 and Node.js 24 with npm. Git is needed to clone;
-Google Chrome is needed for the optional browser test. A clean-machine dependency
-installation has not been verified in this documentation checkpoint.
+Google Chrome is needed for the optional browser test. A fresh Python environment and isolated frontend install/build were verified on
+the current Windows machine. A new machine or Linux host remains unverified.
 
 ### Clone
 
@@ -56,10 +56,13 @@ cd backend
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe scripts/init_local_env.py
+.\.venv\Scripts\python.exe scripts/migrate_database.py
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-For an existing setup, run only the last command from `backend/`. Calling its
+For an existing setup, install changed requirements and run the migration command
+once before starting the server. On ordinary restarts, run only the last command
+from `backend/`. Calling its
 Python directly avoids requiring virtual-environment activation. Keep the
 terminal running. Check [health](http://127.0.0.1:8000/health) and
 [interactive API docs](http://127.0.0.1:8000/docs).
@@ -73,9 +76,12 @@ not merely a long memorable phrase. `.env.example` documents the variable.
 Changing the key invalidates old tokens; restart the backend and log in again.
 Account passwords and resumes are unaffected.
 
-The database and upload paths are relative, so start from `backend/`. Startup
-creates a new database if absent. It does not migrate old tables. Keep existing
-databases/uploads; inspect missing-column errors rather than deleting data.
+The database and uploads default to the backend directory regardless of working
+directory; run the documented commands from `backend/`. Startup
+requires the current Alembic revision. The migration command creates a fresh database
+or adopts a matching existing schema without deleting rows. Back up existing databases
+before migration; see [migration workflow](backend/migrations/README.md). A schema
+mismatch stops adoption for inspection. Keep existing databases and uploads.
 
 ### Frontend: second terminal, starting at the project root
 
@@ -93,7 +99,7 @@ running on their ports; `Ctrl+C` stops a server in its terminal.
 
 1. Register and log in. New passwords must be nonempty, have no null characters,
    and fit within 72 UTF-8 bytes; some characters use more than one byte.
-2. Upload a disposable PDF with selectable text and confirm its filename appears.
+2. Upload a PDF with selectable text, up to 5 MiB and 10 pages, without password protection. Confirm its filename appears.
 3. Open **View text**, **View skills** and **View role overlaps**.
 4. Compare the results with the PDF, then log out.
 
@@ -126,8 +132,9 @@ row's `id`, not `user_id`. If it is 3, request
 `http://127.0.0.1:8000/resumes/3/matches`.
 
 Expected failures: missing/invalid authentication `401`, foreign/missing resume
-`404`, duplicate email `409`, invalid input `422`, non-PDF `400`. Corrupt PDFs
-currently return `500`; tested cleanup removes incomplete files/records.
+`404`, duplicate email `409`, invalid input `422`, invalid/empty/corrupt or
+password-protected PDF `400`, and byte/page-limit rejection `413`. Tested cleanup
+removes rejected files/records; unexpected server/storage failures remain `500`.
 
 ## Tests and evaluation
 
@@ -138,7 +145,7 @@ From **`backend/`**:
 .\.venv\Scripts\python.exe -m evaluation.evaluate_skills
 ```
 
-Current verified suite: **44 passing backend tests**. Evaluation reports both
+Current verified suite: **58 passing backend tests**. Evaluation reports both
 supported examples and known limitations using synthetic development cases;
 see [evaluation details](backend/evaluation/README.md).
 
@@ -167,10 +174,13 @@ It is not a comprehensive visual/accessibility audit.
   use deployment secret storage before publishing. The old development key is
   retired but remains in historical Git commits; never reuse it. Algorithm HS256
   and 30-minute expiration remain fixed. History has not been rewritten.
-- Frontend API address is fixed at port 8000; CORS allows local origins on 5173.
+- API address and CORS origins are configurable; defaults use local ports 8000/5173.
 - Login tokens live in React memory. Refresh clears login; logout does not revoke
   an issued JWT. Refresh tokens and password recovery are not implemented.
-- No upload size/page limits, OCR, resume deletion or schema migrations yet.
+- Uploads are limited to 5 MiB and 10 pages before application storage/parsing.
+  Multipart receipt/spooling happens earlier; deployment request limits, parsing
+  time/memory isolation and compressed-content safeguards remain future work.
+  No OCR or resume deletion yet. Schema migrations now use Alembic.
   Parsing loads PDF bytes in memory; file and database operations are not atomic
   across crashes or filesystem deletion failures.
 - The skill catalog is limited and ignores context/proficiency. Ordinary words
@@ -191,8 +201,37 @@ Synthetic test credentials/hashes are intentional fixtures, not real accounts.
 | Port already in use | Reuse the existing server; browser tests also need 8001/9223 free |
 | Could not reach the server | Confirm FastAPI is running on 8000 |
 | 422 for resume ID | Replace the placeholder with an actual numeric resume ID |
-| Missing database column | Inspect the existing schema; `create_all()` does not migrate tables |
+| Database needs migration | From backend run `.venv/Scripts/python.exe scripts/migrate_database.py` |
+| Existing schema differs from baseline | Keep the database and inspect the mismatch; do not force a stamp |
 
 See [progress](PROGRESS.md), [decisions](DECISIONS.md), [learning log](LEARNING_LOG.md),
 [error history](ERRORS_AND_FIXES.md), [roadmap](ROADMAP.md) and
 [session handoff](PROJECT_HANDOFF.md).
+
+## API address and browser origins
+
+Local defaults need no extra configuration. To change them:
+
+- Frontend: copy frontend/.env.example to frontend/.env.local and set VITE_API_BASE_URL to the backend HTTP(S) address. Restart Vite after changes; production requires a rebuild. This value is public, so never add JWT secrets or private API keys to VITE_ variables.
+- Backend: set CORS_ORIGINS in backend/.env or the process environment to a comma-separated list such as `https://app.example.com`. Use exact frontend origins, without paths or trailing slashes. Restart FastAPI. Process environment overrides the file; omitted setting retains localhost defaults. Empty/malformed settings fail startup.
+- Keep the existing JWT_SECRET_KEY when editing backend/.env. CORS limits browser response access; authentication and ownership checks still protect data.
+
+Success: browser login and uploads work from the configured origin. A different origin fails CORS preflight; an incorrect API address produces connection feedback. HTTPS deployments need an HTTPS backend. This checkpoint configures addresses only; hosting, persistent storage and production hardening remain outstanding.
+
+See [deployment readiness and runbook](DEPLOYMENT.md) for hosting requirements, persistent data considerations, release commands and outstanding verification. No hosted deployment has been completed.
+
+## Storage location
+
+Omit CAREER_DATA_DIR to preserve current backend/ storage. For a new storage location,
+create an absolute directory and set CAREER_DATA_DIR in backend/.env or the process
+environment. Both SQLite and uploads will live beneath it. Run migrations with the
+same setting, then restart the backend. Invalid or nonexistent directories fail
+rather than silently falling back. No files are moved automatically: a new empty
+directory produces an empty database after migration. Do not switch an existing
+installation until its database, uploads and saved file paths have a reviewed
+migration/backup plan. The existing migration guide's backup example targets the
+default backend location; for custom storage use its configured database path.
+
+## Automated checks
+
+[Project checks](.github/CI.md) defines GitHub Actions backend tests/migrations on Windows and Ubuntu plus frontend lint/build on Ubuntu. The workflow is implemented but awaits its first remote run; local Windows checks have passed. It does not deploy the application.

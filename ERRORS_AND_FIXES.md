@@ -242,3 +242,22 @@ Fix: use bcrypt directly, keep algorithm/cost and legacy verification semantics,
 Verified: 40 backend tests pass with no metadata warning; legacy synthetic hashes and HTTP login succeed; build/lint and Chrome password-validation/full-flow test pass. This supersedes prior open warning entries.
 Prevention: compatibility fixtures and explicit byte-limit tests. Existing account hashes and database untouched.
 Editing note: requirements.txt was UTF-16 and rejected by the UTF-8 patch tool; read with BOM detection and saved as UTF-8 while removing only the Passlib pin. No dependency upgrades performed.
+
+## 2026-09-16 - Corrupt PDFs now return client errors
+
+Previously verified behavior: invalid PDF content raised a parser error mapped to 500.
+Change: known invalid/password-protected cases now raise InvalidResumePDF and return 400; page limits return 413. Unexpected parser/storage failures retain 500.
+Verified: updated corrupt-PDF direct/API tests pass; new boundary/encryption tests confirm no leftover files/rows. Chrome checks corrupt/over-page-limit rejection and successful retry with another file.
+Lesson: invalid user input should be distinguishable from an internal server failure. This supersedes historical documentation of corrupt-PDF 500 responses.
+
+## 2026-09-16 - Frontend verification sandbox restrictions repeated
+
+Build reproduced `Error: spawn EPERM`; browser smoke timed out at `http://127.0.0.1:5173/` while starting Vite under the sandbox. Existing child-process restrictions were the likely cause; same commands with approved escalation passed without source changes. Verified build and full Chrome keyboard/workflow checks. Lesson: separate tool execution restrictions from application failures.
+
+## 2026-09-16 - CORS test client dependencies
+
+New CORS test import failed: `The starlette.testclient module requires the httpx2 package to be installed.` An attempted httpx import also failed (`No module named 'httpx'`). Inspection showed existing API tests use direct ASGI requests. Reused that approach instead of adding packages. Verified all 55 backend tests pass. Lesson: inspect existing test infrastructure before choosing a helper.
+
+## 2026-09-16 - Isolated frontend lint scanned dependencies
+
+Context: clean-install verification source copy omitted frontend/.gitignore. Lint emitted dependency warnings such as `eslint(no-unused-expressions)` under node_modules/react-dom. Root cause: incomplete verification copy, not application code. Copied the existing .gitignore and reran lint; exit 0 with no warnings. Prevention: include configuration and ignore files when reproducing an installation.

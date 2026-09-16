@@ -1,5 +1,32 @@
 # LEARNING_LOG.md — AI Career Assistant
 
+## 2026-09-16 - Keyboard focus and skip links
+
+Keyboard users press Tab to move between controls. A skip link jumps past repeated introductory content. In frontend/src/App.jsx, its href points to workspace; tabIndex={-1} allows that container to receive focus without adding it to the normal Tab sequence. App.css reveals the link when focused and gives controls a visible outline.
+
+Try it at http://127.0.0.1:5173/ after starting both servers: reload, press Tab, then Enter, then Tab. Success: the skip link appears, focus jumps to the workspace, then the name field. Failure would be an invisible link or focus staying in the introduction. The real Chrome test verifies this sequence and existing network-error recovery. You should now be able to explain focus versus clicking and why keyboard users need a visible location indicator. Screen-reader announcements and a full accessibility audit still need separate review.
+
+## 2026-09-16 - Database migrations
+
+A model describes the tables the code expects. A migration records how to build or change those tables. SQLAlchemy create_all creates missing tables but does not evolve existing ones. Alembic stores the applied revision in alembic_version, like a checkpoint for database structure.
+
+The frozen initial revision lives in backend/migrations/versions/. Our helper compares existing unversioned tables with that baseline before recording the version; a fresh database runs the revision instead. This preserves existing accounts and resumes. FastAPI now refuses startup when the revision is behind, with the command to run.
+
+From backend, run `.venv/Scripts/python.exe scripts/migrate_database.py`, then `.venv/Scripts/python.exe -m alembic current`. Success shows 0001_initial (head). A differing old schema raises an error instead of being silently accepted. Four migration tests cover fresh/repeated runs, existing data, schema mismatch and startup checks; all 52 backend tests pass. The local data was also compared against a backup.
+
+You should now be able to explain the difference between a model, a migration, an upgrade and a stamp: a stamp records a version without creating its tables. Always review generated future migrations and back up valuable data first; version tracking alone does not prove that nobody manually changed a table.
+
+## 2026-09-16 - Validate uploads at multiple layers
+
+The browser checks file.size for fast feedback, but any client can bypass it. The upload route measures the actual spooled file before saving, rather than trusting a size header. config.py defines a 5 MiB (5,242,880-byte) maximum and 10-page maximum. The parser checks page count and password protection before extracting text. Services raise typed errors; the route converts them to HTTP responses and removes rejected artifacts.
+
+Example: 10 pages succeeds; 11 pages returns 413. A corrupt or encrypted PDF returns 400. File-size and page-limit tests verify both exact-boundary acceptance and rejection with no leftover record/file. Unexpected server/storage errors remain 500. A blank but valid PDF can still have no extracted text; existing UI handles that case.
+
+Run from backend: .venv/Scripts/python.exe -m unittest discover -s tests -q -> 48 tests OK; node tests/browser_smoke.mjs -> PASS including oversized/corrupt/11-page errors and successful upload recovery. In the normal dashboard, a file larger than 5 MiB should immediately show a size message. Postman can independently verify 413; a readable PDF within both limits should return 201. Existing servers can be reused; usual startup commands are in README.
+
+These checks bound storage and parsing inputs after FastAPI receives multipart data. They do not prevent initial network/spool usage or guarantee bounded parsing time for compressed/complex PDFs; deployment ingress limits and parser isolation are separate tasks. You should now explain frontend feedback versus backend enforcement, 400/413/500 distinctions and boundary testing.
+
+
 ## 2026-09-15 - Configuration versus code
 
 JWT signing keys belong outside source code. app/config.py reads JWT_SECRET_KEY from the environment or an explicitly located backend/.env using python-dotenv; environment values win. Startup rejects missing/short keys rather than using a shared fallback. scripts/init_local_env.py uses Python secrets to create a private random key and exclusive file creation prevents overwriting it. .env.example contains no secret; .gitignore excludes the real file.
@@ -482,3 +509,23 @@ This is useful because it isolates backend behavior from frontend bugs.
 - logging
 - security
 - testing
+
+## 2026-09-16 - Environment-specific addresses
+
+React needs the backend address; FastAPI needs the permitted frontend origins. These are different settings. For example, VITE_API_BASE_URL=https://api.example.com sends requests to the API, while CORS_ORIGINS=https://app.example.com permits that browser origin. Vite embeds its configuration when building, so changing the deployed server environment alone does not change an already-built frontend. Backend settings load on process startup. Neither setting replaces authentication. You should now be able to explain which address belongs on each side and when to restart versus rebuild. README contains run/test steps; 55 backend tests and Chrome workflow pass.
+
+## 2026-09-16 - Application files versus persistent data
+
+A deployment publishes code, but accounts and PDFs are data created while the app runs. In our project the SQLite file and uploads folder live relative to backend/. A host that replaces that folder can lose them. A persistent volume keeps data separate from replaceable code; it still needs backups. DEPLOYMENT.md describes the release sequence and the proof needed: create synthetic data, restart/redeploy, then verify rows AND uploaded files survive. Restoring a backup in a separate environment verifies recovery. A /health 200 only proves the process answers; it does not prove persistence. You should now be able to explain why a successful build is different from a verified deployment.
+
+## 2026-09-16 - One storage setting for app and migrations
+
+CAREER_DATA_DIR is the parent directory for SQLite and uploads. app/config.py validates it; database.py builds the SQLite URL; the resume router uses its uploads child. Alembic now uses the same engine, avoiding accidentally migrating one database while serving another. Defaults are anchored to backend/, so changing terminal directories cannot select a different database. Example: set an existing absolute directory in backend/.env, run migrations, restart backend. Success is data created under that directory; a relative/missing directory fails configuration. Tests use temporary directories, including spaces and percent signs, and verify the file remains in a fresh process. You should explain why configured storage survives process restarts but needs a real retained volume to survive host replacement. Existing data is never automatically moved.
+
+## 2026-09-16 - Clean environments reveal hidden dependencies
+
+A project can work locally because an old package is installed even when it is missing from requirements.txt. A new virtual environment tests the written dependency list. We installed only the pinned requirements there, ran pip check and all 58 tests, then migrated a temporary database and started the FastAPI lifespan. An isolated frontend copy passed npm ci, build and lint. npm ci uses the lockfile for reproducible dependency versions. The copy must include ignore files too: omitting .gitignore made lint inspect node_modules until the file was restored. You should distinguish a clean environment from a clean operating system: Windows success does not verify Linux hosting. Normal development files and databases remained untouched.
+
+## 2026-09-16 - Continuous integration
+
+CI runs repeatable checks after code changes arrive on GitHub. .github/workflows/ci.yml describes events, jobs and steps. The backend matrix runs the same checks on two operating systems; the frontend job installs locked dependencies and runs lint/build. This can expose OS-specific failures that Windows-only testing misses. After pushing, open Actions > Project checks: green jobs mean their commands passed, while a red job requires reading the first failing step. Workflow creation alone is not proof it runs: the first remote run remains pending. You should explain the difference between local testing, CI verification and deployment. CI here publishes no app and uses no production data.

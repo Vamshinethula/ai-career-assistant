@@ -1,7 +1,8 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, URL
 from sqlalchemy.orm import declarative_base, sessionmaker
+from app.config import load_data_directory
 
-DATABASE_URL = "sqlite:///./career_assistant.db"
+DATABASE_URL = URL.create('sqlite', database=str(load_data_directory() / 'career_assistant.db'))
 
 engine = create_engine(
     DATABASE_URL,

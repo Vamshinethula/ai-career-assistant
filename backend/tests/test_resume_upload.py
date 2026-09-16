@@ -61,8 +61,43 @@ class ResumeUploadTests(unittest.TestCase):
     def test_corrupt_pdf_leaves_no_artifacts(self):
         with self.assertRaises(HTTPException) as raised:
             self.upload(b'This is not a PDF')
-        self.assertEqual(raised.exception.status_code, 500)
+        self.assertEqual(raised.exception.status_code, 400)
         self.assert_no_artifacts()
+
+    def test_byte_limit_and_empty_file_leave_no_artifacts(self):
+        for content, status in [(b'', 400), (b'x' * (resumes.MAX_RESUME_BYTES + 1), 413)]:
+            with self.assertRaises(HTTPException) as raised:
+                self.upload(content)
+            self.assertEqual(raised.exception.status_code, status)
+            self.assert_no_artifacts()
+
+    def test_exact_byte_limit_is_accepted(self):
+        pdf = self.pdf()
+        pdf += b' ' * (resumes.MAX_RESUME_BYTES - len(pdf))
+        self.assertEqual(self.upload(pdf).original_filename, 'resume.pdf')
+
+    def test_page_limit_and_password_protection_leave_no_artifacts(self):
+        with fitz.open() as document:
+            for _ in range(11):
+                document.new_page()
+            too_many = document.tobytes()
+        with fitz.open() as document:
+            document.new_page()
+            protected = document.tobytes(encryption=fitz.PDF_ENCRYPT_AES_256,
+                                        owner_pw='synthetic-owner', user_pw='synthetic-user')
+        for content, status in [(too_many, 413), (protected, 400)]:
+            with self.assertRaises(HTTPException) as raised:
+                self.upload(content)
+            self.assertEqual(raised.exception.status_code, status)
+            self.assert_no_artifacts()
+
+    def test_exact_page_limit_is_accepted(self):
+        with fitz.open() as document:
+            for _ in range(10):
+                document.new_page().insert_text((72, 72), 'Python')
+            result = self.upload(document.tobytes())
+        row = self.db.get(models.Resume, result.id)
+        self.assertEqual(row.resume_text.count('Python'), 10)
 
     def test_commit_failure_leaves_no_artifacts(self):
         with patch.object(self.db, 'commit', side_effect=SQLAlchemyError('test failure')):

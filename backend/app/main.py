@@ -1,20 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-from app import models
 from app.database import engine
+from app.config import load_cors_origins
+from app.migrations import require_current_schema
 from app.routers import auth, users, resumes
 
-models.Base.metadata.create_all(bind=engine)
+@asynccontextmanager
+async def lifespan(app):
+    require_current_schema(engine)
+    yield
 
 app = FastAPI(
+    lifespan=lifespan,
     title="AI Career Assistant API",
     description="Backend API for resume analysis and job matching.",
     version="1.0.0",
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_origins=load_cors_origins(),
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "Authorization"],
 )

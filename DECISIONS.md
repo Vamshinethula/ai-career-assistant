@@ -270,3 +270,53 @@ Chosen: python-dotenv 1.2.3 reads exact backend/.env; process JWT_SECRET_KEY tak
 Why: standard parsing, simple local setup and deploy-time environment support. Generator refuses to overwrite existing files and never prints keys.
 Tradeoffs: one small dependency; key remains plaintext in an ignored local file and needs deployment secret storage later. Key rotation logs out issued sessions; account/password/resume data unchanged. Old key remains in historical commits but is retired.
 Revisit: deployment secret management, multiple signing keys/rotation windows or configuration growth.
+
+## D-024 - Resume input limits and explicit PDF errors
+
+Date: 2026-09-16
+Context: unbounded stored PDF size/pages and generic 500 for corrupt input.
+Options: application limits now; deployment middleware/proxy limits; isolated parsing workers.
+Chosen: 5 MiB actual spooled-file limit before saving; 10 pages before extraction; reject password-protected/invalid PDFs with 400, limit violations with 413. Browser size check and clear feedback. Valid empty-text PDFs remain supported.
+Why: small, testable safeguards appropriate for resume input, no dependencies/schema changes.
+Tradeoffs: limits occur after multipart parsing/spooling; ingress limits and compressed-content/time/memory isolation remain deployment work. Limits may need adjustment for longer CVs.
+Revisit: user file needs, deployment resource limits and parser isolation.
+
+## D-025 - Alembic baseline and explicit upgrades
+
+Date: 2026-09-16
+Context: create_all cannot evolve existing tables; local accounts/resumes must survive schema setup.
+Options: reset SQLite, continue manual SQL, or introduce versioned Alembic migrations.
+Chosen: Alembic 1.20.0 with a frozen initial revision. Compare unversioned schemas against that revision before stamping; upgrade fresh/versioned databases normally. Application lifespan requires current revision. SQLite backup before local adoption; baseline downgrade refuses deletion.
+Why: supports future schema evolution with a reviewable history while preserving current data. Schema comparison uses the frozen baseline, not future models.
+Tradeoffs: an explicit setup command and dependencies; autogeneration needs human review and does not detect every possible schema difference. Startup checks revision, not full schema drift. This is verified for SQLite; other production databases need separate validation. No automated backup service is introduced.
+Revisit: first real column change, deployment database choice, multi-instance deployment or backup/restore requirements.
+
+## D-026 - Explicit deployment addresses with local defaults
+
+Date: 2026-09-16
+Context: API and CORS addresses were hardcoded.
+Options: runtime frontend configuration, Vite build-time variable, or reverse proxy only.
+Chosen: VITE_API_BASE_URL with local fallback; comma-separated CORS_ORIGINS using existing dotenv/environment precedence. Exact HTTP(S) origins only, no wildcards or URL paths.
+Why: simple configuration with existing dependencies and unchanged local setup.
+Tradeoffs: frontend address changes require rebuild; backend requires restart. CORS does not authenticate clients. Hosting and HTTPS setup remain separate work.
+Revisit: multiple deployment environments needing identical frontend artifacts or same-origin proxy hosting.
+
+## D-027 - Shared absolute storage root
+
+Date: 2026-09-16
+Context: relative paths could select different databases by working directory and could not target a host volume.
+Options: separate database/upload variables; database URL plus object storage; one SQLite data directory.
+Chosen: CAREER_DATA_DIR, existing absolute directory, environment over dotenv, default anchored backend/. App and Alembic share the engine. No automatic data move or backend change.
+Why: smallest local-compatible step for a single-instance deployment; both data types remain together.
+Tradeoffs: SQLite only, directory must exist, existing stored paths need review before relocation, actual volume durability unverified. Default behavior intentionally changes from cwd-relative to backend-anchored.
+Revisit: hosting selection, multiple instances, object storage or production database migration.
+
+## D-028 - GitHub Actions regression checks
+
+Date: 2026-09-16
+Context: clean Windows setup passed but repeatable remote and Linux verification are missing.
+Options: manual-only checks, Windows-only CI, or Windows/Linux backend matrix plus frontend build job.
+Chosen: backend matrix and Ubuntu frontend, Python 3.12/Node 24, read-only permissions, no deployment or secrets. Browser smoke remains local for now.
+Why: reuse existing commands and expose host-OS compatibility issues without choosing hosting.
+Tradeoffs: additional runner time, first remote run unverified, major action tags may update. No branch-protection setting changed.
+Revisit: initial runner failures, CI duration or adding browser checks.

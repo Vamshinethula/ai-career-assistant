@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000'
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || 'http://127.0.0.1:8000').replace(/\/+$/, '')
 
 async function requestJson(path, options, messages) {
   let response
@@ -66,7 +66,8 @@ export async function uploadResume(file, accessToken, signal) {
     body,
     signal,
   }, {
-    400: 'Choose a valid PDF resume and try again.',
+    400: 'Choose a nonempty, readable PDF without password protection.',
+    413: 'Choose a PDF no larger than 5 MiB and no more than 10 pages.',
     401: 'Your session is no longer valid. Please log in again.',
     422: 'Select a PDF file before uploading.',
     default: 'Upload could not be confirmed. The server may have saved the file. Please try again later.',

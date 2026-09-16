@@ -1,5 +1,52 @@
 # CHANGELOG.md — AI Career Assistant
 
+## Continuous integration workflow added - 2026-09-16
+
+Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.
+
+Next: review/commit/push accumulated work and inspect the first Project checks run. Linux compatibility and remote workflow execution remain unverified until that run. Hosting/data policy is still undecided. Changes remain uncommitted; no push performed in this checkpoint.
+
+## Clean Windows environment verified - 2026-09-16
+
+Confirmed working in a newly created temporary Python 3.12 venv: pip install -r backend/requirements.txt, pip check, all 58 backend tests, fresh temporary-storage migrations, alembic check and FastAPI lifespan startup. Separate frontend source copy: npm ci, build and lint passed. Pip/npm caches were available; this was a fresh environment on the current Windows machine, not a new machine or Linux host. Normal servers and saved data were not changed.
+
+The first frontend verification copy omitted .gitignore, causing lint to inspect dependencies; copying the repository ignore file resolved the harness issue without application changes. No dependency changes needed. Next: hosting/data-policy decision, then host-specific install/persistence verification. Hosting, HTTPS, volume durability and backup restore remain unverified. Changes remain uncommitted.
+
+## Configurable storage directory - 2026-09-16
+
+Confirmed working: 58 backend tests and full Chrome workflow pass. CAREER_DATA_DIR selects an existing absolute directory for career_assistant.db and uploads/. Environment overrides backend/.env; omitted value anchors to backend/ independent of working directory. Invalid/relative/missing directories fail configuration. SQLAlchemy URL construction safely handles spaces/percent signs. Alembic CLI and helper share the app engine; injected test connections remain supported.
+
+Verified in temporary storage across subprocess restarts and alternate working directory: migration helper, alembic current/check, app schema guard, upload directory and retained synthetic file. Existing local data not moved. No schema/dependency changes. Real host persistence, backup restore and hosting choice remain unverified; this is storage configuration, not deployment. Next: choose demo versus persistent hosting and test a clean installation for the selected host. Changes remain uncommitted.
+
+## Deployment readiness review - 2026-09-16
+
+Added DEPLOYMENT.md with repository-verified runtime/storage requirements, configuration, migration/startup sequence, synthetic smoke checks and persistence/recovery checks. Confirmed both local servers return HTTP 200; Uvicorn CLI options and referenced migration guide verified. Documentation-only checkpoint; prior 55-test/build/lint/Chrome evidence retained without rerunning unchanged application tests.
+
+Hosting remains planned, not deployed. Current SQLite and upload paths are relative to backend working directory; a separate persistent mount needs shared configurable paths and migration alignment. Clean host installation, HTTPS, persistence and restore are unverified. Pending user preference: disposable synthetic demo versus persistent app (potential storage cost). Next: implement and test storage-path configuration if persistent mode is chosen, then select hosting requirements. No new dependency, database mutation or external deployment. Changes remain uncommitted.
+
+## Configurable API and CORS addresses - 2026-09-16
+
+Confirmed working: 55 backend tests, frontend build/lint and real Chrome workflow pass. VITE_API_BASE_URL controls the frontend API base (local fallback, trims trailing slashes). CORS_ORIGINS controls exact allowed frontend origins, process environment over backend/.env over localhost defaults. Invalid values fail startup. Tests cover file/default/override behavior, allowed and rejected preflights. No dependencies or database changes. Existing local servers remain running; backend must restart to pick up future CORS changes. Full hosting/deployment and clean-machine setup remain unverified. Next: deployment readiness checklist and hosting requirements; changes remain uncommitted.
+
+## 2026-09-16 - Improve keyboard access and overview copy
+
+- Added keyboard skip link to account forms/dashboard and visible focus outlines.
+- Replaced stale planned-feature copy with current capabilities and role-score limitations.
+- Verified keyboard navigation in real Chrome, existing full browser workflow, build and lint.
+
+## 2026-09-16 - Add database migration baseline
+
+- Added Alembic baseline, guarded adoption command and application startup version check.
+- Preserved existing local rows against SQLite backup; added fresh/repeat/adoption/mismatch/startup tests.
+- Verified 52 backend tests, Chrome workflow, model/schema parity and dependency health. Updated setup instructions.
+
+## 2026-09-16 - Bound resume uploads
+
+- Added 5 MiB and 10-page limits, password-protected/invalid PDF rejection and cleanup.
+- Changed corrupt-PDF response from 500 to 400; limit violations return 413.
+- Added browser validation/messages and boundary/failure tests. Forty-eight backend tests, build/lint and Chrome workflow pass.
+
+
 ## 2026-09-15 - Environment-based JWT configuration
 
 - Removed hardcoded active signing key; added private dotenv/environment configuration and startup validation.

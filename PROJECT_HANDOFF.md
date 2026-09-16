@@ -1,5 +1,48 @@
 # PROJECT_HANDOFF.md --- AI Career Assistant
 
+## Continuous integration workflow added - 2026-09-16
+
+Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.
+
+Next: review/commit/push accumulated work and inspect the first Project checks run. Linux compatibility and remote workflow execution remain unverified until that run. Hosting/data policy is still undecided. Changes remain uncommitted; no push performed in this checkpoint.
+
+## Clean Windows environment verified - 2026-09-16
+
+Confirmed working in a newly created temporary Python 3.12 venv: pip install -r backend/requirements.txt, pip check, all 58 backend tests, fresh temporary-storage migrations, alembic check and FastAPI lifespan startup. Separate frontend source copy: npm ci, build and lint passed. Pip/npm caches were available; this was a fresh environment on the current Windows machine, not a new machine or Linux host. Normal servers and saved data were not changed.
+
+The first frontend verification copy omitted .gitignore, causing lint to inspect dependencies; copying the repository ignore file resolved the harness issue without application changes. No dependency changes needed. Next: hosting/data-policy decision, then host-specific install/persistence verification. Hosting, HTTPS, volume durability and backup restore remain unverified. Changes remain uncommitted.
+
+## Configurable storage directory - 2026-09-16
+
+Confirmed working: 58 backend tests and full Chrome workflow pass. CAREER_DATA_DIR selects an existing absolute directory for career_assistant.db and uploads/. Environment overrides backend/.env; omitted value anchors to backend/ independent of working directory. Invalid/relative/missing directories fail configuration. SQLAlchemy URL construction safely handles spaces/percent signs. Alembic CLI and helper share the app engine; injected test connections remain supported.
+
+Verified in temporary storage across subprocess restarts and alternate working directory: migration helper, alembic current/check, app schema guard, upload directory and retained synthetic file. Existing local data not moved. No schema/dependency changes. Real host persistence, backup restore and hosting choice remain unverified; this is storage configuration, not deployment. Next: choose demo versus persistent hosting and test a clean installation for the selected host. Changes remain uncommitted.
+
+## Deployment readiness review - 2026-09-16
+
+Added DEPLOYMENT.md with repository-verified runtime/storage requirements, configuration, migration/startup sequence, synthetic smoke checks and persistence/recovery checks. Confirmed both local servers return HTTP 200; Uvicorn CLI options and referenced migration guide verified. Documentation-only checkpoint; prior 55-test/build/lint/Chrome evidence retained without rerunning unchanged application tests.
+
+Hosting remains planned, not deployed. Current SQLite and upload paths are relative to backend working directory; a separate persistent mount needs shared configurable paths and migration alignment. Clean host installation, HTTPS, persistence and restore are unverified. Pending user preference: disposable synthetic demo versus persistent app (potential storage cost). Next: implement and test storage-path configuration if persistent mode is chosen, then select hosting requirements. No new dependency, database mutation or external deployment. Changes remain uncommitted.
+
+## Configurable API and CORS addresses - 2026-09-16
+
+Confirmed working: 55 backend tests, frontend build/lint and real Chrome workflow pass. VITE_API_BASE_URL controls the frontend API base (local fallback, trims trailing slashes). CORS_ORIGINS controls exact allowed frontend origins, process environment over backend/.env over localhost defaults. Invalid values fail startup. Tests cover file/default/override behavior, allowed and rejected preflights. No dependencies or database changes. Existing local servers remain running; backend must restart to pick up future CORS changes. Full hosting/deployment and clean-machine setup remain unverified. Next: deployment readiness checklist and hosting requirements; changes remain uncommitted.
+
+## Latest checkpoint - Keyboard skip navigation, 2026-09-16
+
+App.jsx now includes a skip link to focusable workspace and accurate current-feature copy. App.css gives keyboard controls a visible focus outline and reveals the skip link on focus. Chrome smoke dispatches real Tab/Enter events to verify focus progression to registration; existing full workflow passes. Build/lint pass (build and browser required approved sandbox escalation). Backend code unchanged; prior 52-test result retained. Full accessibility audit remains outstanding. Next small checkpoint: environment-configurable frontend API URL and backend CORS origins. Current and earlier changes remain uncommitted.
+
+## Latest checkpoint - Alembic baseline, 2026-09-16
+
+Installed/pinned Alembic 1.20.0 and dependencies. backend/migrations/versions/0001_initial.py freezes existing schema. scripts/migrate_database.py creates fresh schemas or compares unversioned schemas to the frozen baseline before stamping, then upgrades to head. app/main.py now checks the version in lifespan instead of create_all. Browser server migrates its isolated database first. Baseline downgrade deliberately refuses data deletion.
+
+Verified: 52 backend tests, Chrome flow, alembic current/check and pip check. SQLite backup retained in ignored backend/backups/; all 2 user and 4 resume rows compared unchanged. Existing normal server may need restart. README includes migration setup; backend/migrations/README.md includes backup and future revision workflow. Changes and prior upload checkpoint are uncommitted. Next: UI/accessibility and portfolio presentation review, followed by deployment configuration and clean-machine verification.
+
+## Latest checkpoint - Upload limits, 2026-09-16
+
+Added MAX_RESUME_BYTES=5*1024*1024 and MAX_RESUME_PAGES=10 in config. Route measures actual spooled file before saving; parser checks PDF/password/page count before text extraction. Typed parser errors map to 400 invalid PDF or 413 page limit, with rollback/file cleanup. Unexpected errors remain 500. Frontend size check/copy and 400/413 messages added. Forty-eight tests, build/lint and Chrome failure/recovery flow pass. Existing data untouched; after-multipart limits are not network ingestion or full parser resource isolation. Next: migration baseline and verification without deleting DB. Current edits uncommitted; prior e1ae85a pushed.
+
+
 ## Latest checkpoint - Environment JWT key, 2026-09-15
 
 Added explicit backend/.env loading with python-dotenv 1.2.3; environment JWT_SECRET_KEY wins, absent/blank/under-32-byte values fail startup. init_local_env.py creates a random key only if no .env exists; generated local .env is ignored and never printed. jwt_handler.py now loads config, retaining HS256 and 30 minutes. Test key isolated in test_environment.py and browser_server.py. Forty-four tests, browser smoke, setup idempotence and pip check pass. Restart normal backend/login to use new key. No account hashes or database changes; retired key still in history, no history rewrite. Next: upload resource limits and targeted failure tests, then migrations/deployment. User received scope-based completion/time estimates recorded in ROADMAP.md. Work uncommitted.

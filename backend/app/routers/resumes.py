@@ -1,13 +1,14 @@
 import shutil
 from pathlib import Path
 from uuid import uuid4
-from app.services.resume_parser import extract_text_from_pdf
+from app.services.resume_parser import extract_text_from_pdf, InvalidResumePDF, ResumePageLimitExceeded
 from app.services.skill_extractor import extract_skills
 from app.services.role_matcher import match_roles
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.config import MAX_RESUME_BYTES, load_data_directory
 from app.dependencies import get_db
 from app.oauth2 import get_current_user
 
@@ -17,7 +18,7 @@ router = APIRouter(
     tags=["Resumes"],
 )
 
-UPLOAD_DIRECTORY = Path("uploads")
+UPLOAD_DIRECTORY = load_data_directory() / 'uploads'
 UPLOAD_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
 
@@ -115,6 +116,17 @@ def upload_resume(
             detail="The uploaded file must be a PDF",
         )
 
+    # Measure the actual spooled upload, not a client-supplied size header.
+    resume_file.file.seek(0, 2)
+    file_size = resume_file.file.tell()
+    resume_file.file.seek(0)
+    if file_size == 0 or file_size > MAX_RESUME_BYTES:
+        resume_file.file.close()
+        raise HTTPException(
+            status_code=413 if file_size > MAX_RESUME_BYTES else 400,
+            detail='Resume must be a nonempty PDF no larger than 5 MiB',
+        )
+
     stored_filename = f"{uuid4()}.pdf"
     destination = UPLOAD_DIRECTORY / stored_filename
 
@@ -148,6 +160,13 @@ def upload_resume(
         db.flush()
         result = schemas.ResumeResponse.model_validate(new_resume)
         db.commit()
+    except (InvalidResumePDF, ResumePageLimitExceeded) as error:
+        db.rollback()
+        destination.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=413 if isinstance(error, ResumePageLimitExceeded) else 400,
+            detail=str(error),
+        ) from error
     except Exception:
         # Parser, schema and database failures all require the same cleanup.
         db.rollback()

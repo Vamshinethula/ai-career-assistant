@@ -19,7 +19,7 @@ Ports 8001 and 9223 must be free. The script reuses an existing frontend on
 must serve this project. Existing servers are not stopped.
 
 The test launches the actual FastAPI application with an in-memory database
-configured before application import, temporary upload storage, and a synthetic
+configured and migrated before application import, temporary upload storage, and a synthetic
 PDF. A separate headless Chrome profile redirects its API requests from port
 8000 to the isolated server on 8001 using Chrome's debugging protocol. The
 normal backend and browser session are untouched. Actual application CORS rules
@@ -40,3 +40,5 @@ Passlib metadata warning was resolved on 2026-09-15. Registration rejects
 passwords over 72 UTF-8 bytes, and this browser test checks that feedback before
 registering with a valid password. Child-process logs are suppressed; use the
 API test suite to inspect backend warnings directly.
+
+Keyboard checkpoint: real Tab/Enter events verify the first-focus skip link is visible, activates workspace focus, and leads to the registration input. This does not replace screen-reader or comprehensive accessibility testing.

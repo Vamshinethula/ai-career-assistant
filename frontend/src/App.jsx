@@ -18,6 +18,7 @@ function App() {
   }
   return (
     <main className="welcome">
+      <a className="skip-link" href="#workspace">Skip to {accessToken ? 'dashboard' : 'account forms'}</a>
       <header className="welcome-header">
         <p className="eyebrow">Your next chapter starts here</p>
         <h1>AI Career Assistant</h1>
@@ -27,23 +28,24 @@ function App() {
       </header>
 
       <section className="overview" aria-labelledby="overview-title">
-        <h2 id="overview-title">What you will be able to do</h2>
-        <p className="availability">These features are coming as we build the app.</p>
+        <h2 id="overview-title">Explore your resume</h2>
+        <p className="availability">Upload a resume, review detected skills and compare example roles.</p>
         <ol className="feature-list">
           <li>
             <h3>Bring your experience</h3>
-            <p>Upload a PDF resume to start building your career profile.</p>
+            <p>Upload a readable PDF, up to 5 MiB and 10 pages, and review its extracted text.</p>
           </li>
           <li>
             <h3>Understand your skills</h3>
-            <p>Identify your strengths and areas you want to develop.</p>
+            <p>Review skill mentions detected using our local keyword catalog.</p>
           </li>
           <li>
             <h3>Explore your next step</h3>
-            <p>Discover suitable roles and personalized career recommendations.</p>
+            <p>Compare detected skills with example role profiles. Overlap scores are not hiring predictions.</p>
           </li>
         </ol>
       </section>
+      <div id="workspace" tabIndex={-1}>
       {accessToken ? (
         <Dashboard accessToken={accessToken} onLogout={() => setAccessToken(null)}
           onSessionExpired={handleSessionExpired} />
@@ -54,6 +56,7 @@ function App() {
           <LoginForm onLogin={handleLogin} />
         </>
       )}
+      </div>
     </main>
   )
 }

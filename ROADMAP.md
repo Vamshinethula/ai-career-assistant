@@ -1,5 +1,38 @@
 # ROADMAP.md — AI Career Assistant
 
+## Continuous integration workflow added - 2026-09-16
+
+Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.
+
+Next: review/commit/push accumulated work and inspect the first Project checks run. Linux compatibility and remote workflow execution remain unverified until that run. Hosting/data policy is still undecided. Changes remain uncommitted; no push performed in this checkpoint.
+
+## Clean Windows environment verified - 2026-09-16
+
+Confirmed working in a newly created temporary Python 3.12 venv: pip install -r backend/requirements.txt, pip check, all 58 backend tests, fresh temporary-storage migrations, alembic check and FastAPI lifespan startup. Separate frontend source copy: npm ci, build and lint passed. Pip/npm caches were available; this was a fresh environment on the current Windows machine, not a new machine or Linux host. Normal servers and saved data were not changed.
+
+The first frontend verification copy omitted .gitignore, causing lint to inspect dependencies; copying the repository ignore file resolved the harness issue without application changes. No dependency changes needed. Next: hosting/data-policy decision, then host-specific install/persistence verification. Hosting, HTTPS, volume durability and backup restore remain unverified. Changes remain uncommitted.
+
+## Configurable storage directory - 2026-09-16
+
+Confirmed working: 58 backend tests and full Chrome workflow pass. CAREER_DATA_DIR selects an existing absolute directory for career_assistant.db and uploads/. Environment overrides backend/.env; omitted value anchors to backend/ independent of working directory. Invalid/relative/missing directories fail configuration. SQLAlchemy URL construction safely handles spaces/percent signs. Alembic CLI and helper share the app engine; injected test connections remain supported.
+
+Verified in temporary storage across subprocess restarts and alternate working directory: migration helper, alembic current/check, app schema guard, upload directory and retained synthetic file. Existing local data not moved. No schema/dependency changes. Real host persistence, backup restore and hosting choice remain unverified; this is storage configuration, not deployment. Next: choose demo versus persistent hosting and test a clean installation for the selected host. Changes remain uncommitted.
+
+## Deployment readiness review - 2026-09-16
+
+Added DEPLOYMENT.md with repository-verified runtime/storage requirements, configuration, migration/startup sequence, synthetic smoke checks and persistence/recovery checks. Confirmed both local servers return HTTP 200; Uvicorn CLI options and referenced migration guide verified. Documentation-only checkpoint; prior 55-test/build/lint/Chrome evidence retained without rerunning unchanged application tests.
+
+Hosting remains planned, not deployed. Current SQLite and upload paths are relative to backend working directory; a separate persistent mount needs shared configurable paths and migration alignment. Clean host installation, HTTPS, persistence and restore are unverified. Pending user preference: disposable synthetic demo versus persistent app (potential storage cost). Next: implement and test storage-path configuration if persistent mode is chosen, then select hosting requirements. No new dependency, database mutation or external deployment. Changes remain uncommitted.
+
+## Migration checkpoint - 2026-09-16
+
+Confirmed working: Alembic baseline, guarded existing-schema adoption, startup version enforcement and preserved local data. All 52 backend tests and Chrome workflow pass. Upload limits and migration baseline are now implemented. Next: frontend accessibility/portfolio presentation review; then deployment configuration, clean-machine setup and deployment verification. Future schema changes require reviewed migrations; no feature columns were added in this checkpoint.
+
+## Upload safeguards update - 2026-09-16
+
+Application byte/page limits and invalid-PDF errors implemented; 48 tests and browser flow pass. Next: database migration baseline without data loss. Deployment request-size limits and parser time/memory isolation remain outstanding.
+
+
 ## Scope estimate and next checkpoints - 2026-09-15
 
 Planning estimate, not a measured completion metric: roughly 65–75% of a portfolio-ready local MVP is complete; roughly 45–55% of a broader deployed/hardened project. Completed foundation includes auth, React/API integration, resume text/skills, illustrative role overlap, evaluation, API/browser tests, documentation and private JWT configuration.

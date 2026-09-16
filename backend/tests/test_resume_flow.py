@@ -142,7 +142,7 @@ class ResumeFlowTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, 401)
         self.assertEqual((await self.request('POST', '/resumes/upload', pdf=b'invalid'))[0], 401)
         status, _ = await self.request('POST', '/resumes/upload', token, pdf=b'invalid')
-        self.assertEqual(status, 500)
+        self.assertEqual(status, 400)
         self.assertEqual(await self.request('GET', '/resumes', token), (200, []))
         self.assertEqual(list(self.storage.iterdir()), [])
 
