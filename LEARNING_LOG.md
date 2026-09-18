@@ -1,5 +1,9 @@
 # LEARNING_LOG.md — AI Career Assistant
 
+## 2026-09-18 - A verified Git checkpoint
+
+A commit records a reviewable snapshot; pushing sends it to GitHub and triggers CI. Feature commit e933920 passed fresh backend checks on Windows/Linux and frontend checks on Ubuntu. CI confirms those commands for that exact commit, not hosted deployment or every browser behavior. Documentation records the run link so verification can be traced. You should now distinguish local tests, remote CI and deployment.
+
 ## 2026-09-18 - Browser downloads and explicit serialization
 
 A serializer converts current data into a file format. comparisonExport.js selects fields explicitly rather than exporting every object property, keeping authentication tokens and resume text out. JSON preserves automatic labels and user choices separately; null remains unknown rather than becoming zero.

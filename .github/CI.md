@@ -30,3 +30,5 @@ Requiring checks before merges is a separate repository-settings decision.
 
 Reference: GitHub's [Python CI guide](https://docs.github.com/en/actions/tutorials/build-and-test-code/python)
 and [Node CI guide](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs).
+
+Latest verified feature run: [35356842127](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35356842127), commit e933920, passed on 2026-09-18: 74 backend tests on each OS and 3 frontend export tests plus lint/build. Browser checks remain local.

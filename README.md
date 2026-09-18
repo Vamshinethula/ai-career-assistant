@@ -192,7 +192,7 @@ From **`backend/`**:
 ```
 
 Current locally verified suite: **74 passing backend tests**, including job
-comparison and offline backup recovery tests. The last verified remote CI run covered 58 tests.
+comparison and offline backup recovery tests. Remote CI for commit e933920 passed all 74 backend tests on Windows/Ubuntu and the 3 frontend export tests on Ubuntu.
 Evaluation reports both
 supported examples and known limitations using synthetic development cases;
 see [evaluation details](backend/evaluation/README.md).

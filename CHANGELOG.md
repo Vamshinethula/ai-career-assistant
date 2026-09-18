@@ -1,5 +1,11 @@
 # CHANGELOG.md — AI Career Assistant
 
+## Feature checkpoint pushed and CI passed - 2026-09-18
+
+Confirmed working: feature commit e93392001eca1722eb5fbb12f2c763b32c65ccf5 is pushed to origin/main. [Project checks run 35356842127](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35356842127) passed all three jobs: backend Windows and Ubuntu (74 tests, dependency checks, fresh migration/model agreement), frontend Ubuntu (3 export tests, lint and production build). Local normal/demo Chrome and build evidence remains recorded separately; browser tests are not in CI.
+
+No private data or generated files were committed. No deployment occurred. This documentation-only follow-up records the verified feature commit; application code is unchanged. Next: choose the next product feature or proceed with the already-selected disposable demo hosting setup. No current test blocker.
+
 ## Feature checkpoint review - 2026-09-18
 
 Reviewed accumulated comparison/requirement/review/export features, demo mode, recovery verification and documentation for Git checkpoint. Latest local evidence: 74 backend tests, 3 frontend tests, lint, normal/demo builds and both Chrome workflows pass. Private data/configuration and generated output are ignored. Preparing commit/push; updated remote CI remains pending. No deployment is part of this checkpoint.
