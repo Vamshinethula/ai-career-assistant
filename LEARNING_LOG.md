@@ -1,5 +1,37 @@
 # LEARNING_LOG.md — AI Career Assistant
 
+## Title search before pagination - 2026-09-18
+
+Filtering only the ten rows in the browser would miss matches on other pages. The backend filters all rows belonging to this resume/user, then sorts and pages the matches. SQLAlchemy binds the search value and escapes LIKE wildcard characters; frontend URLSearchParams encodes the query safely.
+
+Run the existing backend/frontend, open saved comparisons, enter part of a title, then Search comparisons. Success shows matching titles; an absent phrase shows a no-match message. Clear search restores history. An offline request displays retry feedback; API search values longer than 120 characters return 422. You should be able to explain why filtering precedes pagination and why literal percent/underscore characters require escaping.
+
+## 2026-09-18 - Pagination
+
+Pagination loads a small portion of a list. In backend/app/routers/resumes.py, offset skips rows and limit caps rows after ownership filtering and newest-first sorting. For example, offset=10&limit=11 skips ten records and requests eleven. SavedComparisons.jsx shows ten and uses the extra record to enable Older, avoiding a separate count query.
+
+Run the normal backend/frontend, save eleven synthetic snapshots and navigate Older/Newer. Success shows ten entries then one; Older is disabled on the last page. Invalid API limits return 422, while network failure shows readable feedback. Refresh starts again at the newest page. Concurrent saves/deletes can shift offsets; this is not a frozen history view. You should now be able to explain bounded queries, offsets, limits and why pagination needs stable ordering.
+
+## 2026-09-18 ? Deleting one resource safely
+
+A snapshot is a separate database row linked to a resume. Deleting that row does not require deleting its parent resume or PDF. In backend/app/routers/resumes.py, the existing owner lookup runs before db.delete and commit. For example, DELETE /resumes/1/comparisons/2 returns 204 with no JSON body on success; another user's request returns 404.
+
+The frontend API client accepts an empty 204 response. SavedComparisons.jsx asks for confirmation and refreshes history after success. Run the app, open a saved snapshot, cancel first, then confirm deletion using synthetic data. The row should disappear while the resume stays available. An offline request should show an error; refresh if the server may have completed the request.
+
+You should now be able to explain resource ownership, parent/child deletion, HTTP 204, and why an uncertain network response does not prove a database operation failed.
+
+## 2026-09-18 - Persistence and snapshots
+
+React state disappears when a panel closes; a saved database row survives login sessions while storage exists. Explicit saving now keeps private job text, server results and labels. Reopening reads the saved automatic result. Reviewed score uses saved keywords and choices.
+
+Migration 0002 adds a table without replacing users or resumes. SQLite was backed up and existing rows compared unchanged afterward. SQLite drops datetime timezone metadata, so the response schema restores UTC meaning. Try saving a titled comparison, logging out/in and reopening it. Success is preserved results/labels; invalid input returns 422 and other users get 404. Refresh history before retrying an uncertain save response to avoid duplicates. You should now distinguish temporary state, snapshot persistence and schema migration.
+
+## 2026-09-18 - Choosing a denominator explicitly
+
+A score depends on what it divides by. Original overlap counts all detected job terms. The reviewed score counts only terms you personally mark Required. If you confirm Python and Docker and the resume mentions only Python, the reviewed overlap is 1/2 = 50%. Optional, not-required, uncertain and unreviewed terms are excluded.
+
+No confirmed requirements means null (no score), not zero. Confirming one matching term can produce 100% while other terms remain unreviewed, so the UI shows coverage counts and a subset warning. UI and export share one pure function to avoid inconsistent calculations. Tests cover these distinctions. You should now explain why percentages need their denominator and why user review does not prove proficiency.
+
 ## 2026-09-18 - A verified Git checkpoint
 
 A commit records a reviewable snapshot; pushing sends it to GitHub and triggers CI. Feature commit e933920 passed fresh backend checks on Windows/Linux and frontend checks on Ubuntu. CI confirms those commands for that exact commit, not hosted deployment or every browser behavior. Documentation records the run link so verification can be traced. You should now distinguish local tests, remote CI and deployment.
@@ -603,3 +635,7 @@ CI runs repeatable checks after code changes arrive on GitHub. .github/workflows
 ## 2026-09-16 - Reading the first successful CI run
 
 [Project checks](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) passed on GitHub for commit 1c468db. Each backend job installed dependencies, ran the test suite and checked migrations; the Ubuntu frontend job installed, linted and built. A green run is evidence for that exact commit and those commands. It does not prove the hosted app is reachable or that uploaded files survive redeployment. To investigate a red run, open the failed job and first failed step. You should now be able to separate installation failures, test failures, build failures and deployment failures. No source change or test rerun was needed to record this successful result.
+
+## Renaming a snapshot
+
+PATCH updates part of a resource. The backend shares title validation between save and rename, checks ownership first, and writes only the title. The frontend refreshes history because a renamed title may no longer match the current search. Tests compare the entire response to prove snapshot contents remain unchanged.

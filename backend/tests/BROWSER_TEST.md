@@ -78,3 +78,11 @@ then allow a real Chrome download into the isolated test directory. Read and par
 the JSON file to verify score, automatic/user label provenance, source evidence
 and absence of token/resume-text fields. Cleanup removes the synthetic download.
 Closing results removes the export button. Normal/demo modes pass.
+
+Reviewed scoring: confirming SQL shows 100% for 1 of 1 with 3 unreviewed terms, while original overlap remains 75%. Reset removes reviewed score. Downloaded v2 summary has null reviewed score when no Required choice remains.
+
+Saved comparisons: tests save failure/retry, re-login/reopen with original labels, deletion cancellation, blocked deletion request/retry, and removal persisting after refresh. Both normal and CAREER_TEST_DEMO=true runs pass on 2026-09-18.
+
+Pagination verification (2026-09-18): seed eleven synthetic snapshots, refresh, visit Older, verify final-page disabled control, return Newer. Both browser modes pass.
+
+Title search checks: case-insensitive matching, a single matching row, no-match message, and Clear search restoring history. Both normal/demo modes pass on 2026-09-18.

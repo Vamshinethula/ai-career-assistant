@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -107,4 +107,40 @@ class JobComparisonResponse(BaseModel):
     not_detected_skills: list[str]
     skill_overlap_percent: float | None = Field(default=None, ge=0, le=100)
     requirements: list[JobRequirementResponse]
+
+
+class RenameComparisonRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+
+    @field_validator('title')
+    @classmethod
+    def reject_blank_title(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError('Title must not be blank')
+        return value.strip()
+
+
+class SaveComparisonRequest(JobComparisonRequest, RenameComparisonRequest):
+    label_choices: dict[str, RequirementCategory] = Field(default_factory=dict, max_length=32)
+
+
+class SavedComparisonSummary(BaseModel):
+    id: int
+    resume_id: int
+    title: str
+    created_at: datetime
+
+    @field_validator('created_at')
+    @classmethod
+    def serialize_utc(cls, value: datetime) -> datetime:
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+    class Config:
+        from_attributes = True
+
+
+class SavedComparisonDetail(SavedComparisonSummary):
+    job_description: str
+    result: JobComparisonResponse
+    label_choices: dict[str, RequirementCategory]
 

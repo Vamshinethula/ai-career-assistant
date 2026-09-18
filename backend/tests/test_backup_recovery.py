@@ -61,9 +61,14 @@ class BackupRecoveryTests(unittest.IsolatedAsyncioTestCase):
         status, uploaded = await self.request('POST', '/resumes/upload', token, pdf=self.pdf)
         self.assertEqual(status, 201)
         self.resume_id = uploaded['id']
+        status, saved = await self.request('POST', f'/resumes/{self.resume_id}/comparisons', token,
+            payload={'title': 'Recovery snapshot', 'job_description': 'Python required',
+                     'label_choices': {'Python': 'required'}})
+        self.assertEqual(status, 201)
+        saved_path = f"/resumes/{self.resume_id}/comparisons/{saved['id']}"
         self.expected = {}
         for path in ('/users/me', '/resumes', f'/resumes/{self.resume_id}',
-                     f'/resumes/{self.resume_id}/skills', f'/resumes/{self.resume_id}/matches'):
+                     f'/resumes/{self.resume_id}/skills', f'/resumes/{self.resume_id}/matches', saved_path):
             self.expected[path] = await self.request('GET', path, token)
             self.assertEqual(self.expected[path][0], 200)
         # Quiesce writes and close connections before copying the two-part backup.

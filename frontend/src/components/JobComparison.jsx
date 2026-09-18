@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { compareResumeToJob } from '../services/api'
+import { compareResumeToJob, saveComparison } from '../services/api'
+import SavedComparisons from './SavedComparisons'
 import { createComparisonExport } from '../services/comparisonExport'
+import { calculateReviewedScore } from '../services/reviewedScore'
 
 const categoryLabels = {
   required: 'Required', optional: 'Optional / preferred',
@@ -14,8 +16,37 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
   const [pending, setPending] = useState(false)
   const [labelChoices, setLabelChoices] = useState({})
   const [downloadError, setDownloadError] = useState('')
+  const [title, setTitle] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
+  const [savedVersion, setSavedVersion] = useState(0)
   const request = useRef(null)
+  const reviewedScore = result ? calculateReviewedScore(result, labelChoices) : null
   useEffect(() => () => request.current?.abort(), [])
+
+  async function saveSnapshot(event) {
+    event.preventDefault()
+    if (saving) return
+    if (!title.trim()) { setSaveMessage('Enter a title before saving.'); return }
+    const controller = new AbortController()
+    request.current = controller
+    setSaving(true)
+    setSaveMessage('')
+    try {
+      await saveComparison(resumeId, { title, job_description: description,
+        label_choices: Object.fromEntries(Object.entries(labelChoices).filter(([, value]) => value)) }, accessToken, controller.signal)
+      if (!controller.signal.aborted) {
+        setSaveMessage('Comparison saved. Open it from Saved comparisons below.')
+        setSavedVersion(value => value + 1)
+      }
+    } catch (failure) {
+      if (controller.signal.aborted) return
+      if (failure.status === 401) onSessionExpired(failure.message)
+      else setSaveMessage(failure.message)
+    } finally {
+      if (!controller.signal.aborted) setSaving(false)
+    }
+  }
 
   function downloadSummary() {
     setDownloadError('')
@@ -40,6 +71,7 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
     event.preventDefault()
     if (pending) return
     setResult(null)
+    setSaveMessage('')
     setDownloadError('')
     setLabelChoices({})
     setError('')
@@ -66,15 +98,16 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
     <section id={`job-comparison-${resumeId}`} aria-labelledby={`job-title-${resumeId}`}>
       <h4 id={`job-title-${resumeId}`}>Compare with a job description</h4>
       <p>Paste text, not a link. It is sent to this app's backend for comparison,
-        but is not saved or sent to an external AI service. Use synthetic text in the demo.</p>
+        and is only stored when you explicitly save a comparison. It is not sent to an external AI service. Use synthetic text in the demo.</p>
       <form className="registration-form" onSubmit={submit}>
         <div className="form-field">
           <label htmlFor={`job-description-${resumeId}`}>Job description</label>
           <textarea id={`job-description-${resumeId}`} rows={7} required maxLength={10000}
-            aria-describedby={`job-help-${resumeId}`} value={description} disabled={pending}
+            aria-describedby={`job-help-${resumeId}`} value={description} disabled={pending || saving}
             onChange={(event) => {
               setDescription(event.target.value)
               setResult(null)
+              setSaveMessage('')
               setDownloadError('')
               setLabelChoices({})
               setError('')
@@ -82,13 +115,24 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
           <p id={`job-help-${resumeId}`}>{description.length.toLocaleString()} / 10,000 characters.
             Text and results clear when you close this comparison.</p>
         </div>
-        <button className="form-submit" type="submit" disabled={pending}>
+        <button className="form-submit" type="submit" disabled={pending || saving}>
           {pending ? 'Comparing…' : 'Compare skills'}
         </button>
       </form>
       {pending && <p role="status">Comparing detected skill terms…</p>}
       {error && <p role="alert">{error} You can submit the comparison again.</p>}
       {result && <div aria-live="polite">
+        <form className="registration-form" onSubmit={saveSnapshot}>
+          <div className="form-field">
+            <label htmlFor={`comparison-title-${resumeId}`}>Title for saved comparison</label>
+            <input id={`comparison-title-${resumeId}`} value={title} required maxLength={120} disabled={saving}
+              onChange={event => { setTitle(event.target.value); setSaveMessage('') }} />
+          </div>
+          <p>Saving stores this job description, recalculated results and your reviewed labels privately under your account.
+            Each save creates a new snapshot. A disposable demo reset may erase saved data.</p>
+          <button type="submit" className="form-submit" disabled={saving}>{saving ? 'Saving…' : 'Save comparison'}</button>
+          {saveMessage && <p role="status">{saveMessage}</p>}
+        </form>
         <p>Download a JSON summary of these results and your label choices. It includes
           job-description source excerpts; review the file before sharing. It does not include
           your resume text or login token. The downloaded copy remains on your device after logout.</p>
@@ -113,7 +157,7 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
           <p>These tentative labels recognize a limited set of explicit phrases.
             Conflicting or unsupported wording stays uncertain. They do not change the keyword score.
             “Not required” does not mean a skill is prohibited.</p>
-          <p>Your choices are temporary and do not change the score or automatic labels.
+          <p>Your choices are temporary and do not change the original keyword score or automatic labels.
             Editing the text, comparing again, closing this panel, switching resumes,
             refreshing, or logging out clears them.</p>
           <ul className="requirement-results">
@@ -130,6 +174,7 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
               <div className="form-field">
                 <label htmlFor={`requirement-choice-${resumeId}-${rowIndex}`}>Your label for {row.skill}</label>
                 <select id={`requirement-choice-${resumeId}-${rowIndex}`}
+                  disabled={saving}
                   value={labelChoices[row.skill] || ''}
                   onChange={(event) => setLabelChoices((previous) => ({
                     ...previous, [row.skill]: event.target.value,
@@ -142,15 +187,36 @@ function JobComparison({ resumeId, accessToken, onSessionExpired }) {
               </div>
               {labelChoices[row.skill] && <div>
                 <p role="status">Your choice for {row.skill}: {categoryLabels[labelChoices[row.skill]]}</p>
-                <button type="button" className="form-submit"
+                  <button type="button" className="form-submit" disabled={saving}
                   onClick={() => setLabelChoices((previous) => ({ ...previous, [row.skill]: '' }))}>
                   Reset label for {row.skill}
                 </button>
               </div>}
             </li>)}
           </ul>
+          <section aria-labelledby={`reviewed-score-title-${resumeId}`}>
+            <h5 id={`reviewed-score-title-${resumeId}`}>Reviewed requirement score</h5>
+            <p>Only terms you explicitly choose as Required count here. Automatic labels,
+              optional, not-required and uncertain choices are excluded. This measures keyword
+              evidence for your selected requirements, not proficiency or hiring suitability.</p>
+            <div role="status">
+              {!result.text_available
+                ? <p>No reviewed score is available without readable resume text.</p>
+                : reviewedScore.percent === null
+                  ? <p>No requirements confirmed yet. Choose Required for at least one term to calculate this score.</p>
+                  : <>
+                    <p><strong>{reviewedScore.percent}% reviewed requirement overlap</strong></p>
+                    <p>{reviewedScore.detected_skills.length} of {reviewedScore.confirmed_required_skills.length} user-confirmed required terms detected.</p>
+                    <p>Confirmed required: {reviewedScore.confirmed_required_skills.join(', ')}</p>
+                    <p>Confirmed requirements not detected: {reviewedScore.not_detected_skills.join(', ') || 'None.'}</p>
+                  </>}
+              <p>{reviewedScore.unreviewed_count} terms not reviewed; {reviewedScore.uncertain_count} marked uncertain.
+                This score covers only your confirmed subset, even if it is 100%.</p>
+            </div>
+          </section>
         </section>}
       </div>}
+      <SavedComparisons key={`${resumeId}-${savedVersion}`} resumeId={resumeId} accessToken={accessToken} onSessionExpired={onSessionExpired} version={savedVersion} />
       <p className="registration-note">Keyword overlap is not a hiring prediction or proficiency score.
         The catalog may miss skills and context, including negation and required versus optional skills.
         A term not detected in your resume is not proof that you lack it.</p>

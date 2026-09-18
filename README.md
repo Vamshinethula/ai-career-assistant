@@ -118,8 +118,8 @@ Choose **Compare job description**, paste up to 10,000 characters, and click
 **Compare skills**. With the sample resume above, `Python Docker Kubernetes`
 returns 66.7% overlap and Kubernetes not detected in the resume. No catalog
 matches produces an explanation without a score. Editing clears stale results;
-closing the comparison clears its text and results. The backend does not persist
-the pasted text or send it to an external AI service. Keyword detection does not
+closing the comparison clears unsaved text and results. Job text is persisted only
+when you explicitly save a comparison; it is not sent to an external AI service. Keyword detection does not
 distinguish required, optional, or negated mentions and is not a hiring prediction.
 
 After comparison, **Download comparison summary** saves a readable JSON file.
@@ -172,7 +172,7 @@ resume ID), use the same bearer token and Body -> raw -> JSON:
 Blank/over-limit descriptions return 422; another user's resume returns 404.
 The response includes source excerpts for tentative required, optional, explicitly
 not-required and uncertain labels. Excerpts can include the full input in fallback
-cases; neither text nor results are persisted. A null overlap score means
+cases. Comparison alone is transient; the separate save action persists text and results. A null overlap score means
 missing readable resume text or no catalog terms in the job description.
 
 Expected failures: missing/invalid authentication `401`, foreign/missing resume
@@ -191,7 +191,7 @@ From **`backend/`**:
 .\.venv\Scripts\python.exe -m evaluation.evaluate_requirements
 ```
 
-Current locally verified suite: **74 passing backend tests**, including job
+Current locally verified suite: **77 passing backend tests**, including job
 comparison and offline backup recovery tests. Remote CI for commit e933920 passed all 74 backend tests on Windows/Ubuntu and the 3 frontend export tests on Ubuntu.
 Evaluation reports both
 supported examples and known limitations using synthetic development cases;
@@ -284,3 +284,33 @@ default backend location; for custom storage use its configured database path.
 ## Automated checks
 
 [Project checks](.github/CI.md) defines GitHub Actions backend tests/migrations on Windows and Ubuntu plus frontend lint/build on Ubuntu. The [first remote run](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) passed all three jobs for commit `1c468db`. It does not deploy the application.
+
+## Reviewed requirement score
+
+In job-comparison results, select Required under Your label for each skill you confirm. The separate score uses only those terms: matched confirmed terms divided by all confirmed terms. It does not use automatic labels as confirmation or change original keyword overlap. No confirmations gives no score; unreviewed/uncertain counts show incomplete coverage. A 100% selected subset is not full job suitability. Choices remain temporary. JSON export v2 includes the reviewed score and its denominator. Locally verified: 7 frontend tests and both browser modes; remote CI evidence above predates this feature.
+
+## Saved comparisons
+
+After comparing and reviewing labels, enter a title and choose Save comparison.
+This explicitly stores private job text, backend results and labels. Reopen under
+Saved comparisons after logging in again. History is read-only; each save creates
+a new snapshot. Unsaved work stays temporary. A disposable demo reset may erase
+saved data. Apply migrations before backend startup; current revision is
+0002_saved_comparisons. See [saved comparisons](backend/evaluation/SAVED_COMPARISONS.md).
+
+| Method | Path | Result |
+| --- | --- | --- |
+| POST | /resumes/{resume_id}/comparisons | 201 saved snapshot |
+| GET | /resumes/{resume_id}/comparisons | 200 metadata list |
+| GET | /resumes/{resume_id}/comparisons/{comparison_id} | 200 saved detail |
+
+All require the owner's bearer token. POST accepts title, job_description and
+label_choices. Invalid input returns 422; foreign/missing resources return 404.
+
+Saved snapshots can be deleted from their detail view after confirmation. DELETE `/resumes/{resume_id}/comparisons/{comparison_id}` requires ownership and returns 204; the resume/PDF remain. Latest local checkpoint: 78 backend tests, 7 frontend tests, lint/build and both Chrome modes passed (2026-09-18).
+
+Saved history displays ten entries per page with Newer/Older controls. GET `/resumes/{resume_id}/comparisons` accepts `offset` (default 0) and `limit` (default 20, maximum 100). Latest verification: 79 backend tests, 7 frontend tests, lint/build and both Chrome modes.
+
+Saved history now supports title search and clearing. GET comparisons accepts optional `search` (maximum 120 characters), matching literal substrings before pagination. SQLite case-insensitive matching is primarily ASCII. Latest local checks: 80 backend tests, 7 frontend tests, lint/build and both Chrome modes.
+
+Saved comparison titles can be renamed from the detail view. Owner-protected PATCH updates only the title. Latest checkpoint: 81 backend tests, 7 frontend tests, lint/build and both browser modes passed.

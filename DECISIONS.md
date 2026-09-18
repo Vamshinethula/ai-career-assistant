@@ -1,5 +1,44 @@
 # DECISIONS.md — AI Career Assistant
 
+## D-041 - Server-side title substring search
+
+Date: 2026-09-18. Context: locating saved snapshots across pages.
+Options: browser-only filtering, server substring search, full-text indexing.
+Chosen: optional search query up to 120 characters, whitespace trimmed, SQLAlchemy icontains with autoescape, applied after ownership filtering and before pagination. Explicit form submit and Clear search.
+Why: searches the full owned history without loading every row or introducing dependencies.
+Tradeoffs: SQLite case folding is primarily ASCII, not complete Unicode case folding; substring scans may become expensive with large histories. Query text can appear in server request logs. Search covers titles only.
+Revisit: multilingual case-folding requirements or larger data volumes.
+
+## D-040 - Bounded offset pagination for saved history
+
+Date: 2026-09-18.
+Context: saved history previously loaded every snapshot.
+Options: offset/limit, cursor pagination, or browser-only slicing.
+Chosen: API offset >= 0 and limit 1..100, default 20; retain array response. UI requests eleven rows and displays ten, using one extra to detect another page. Sort by created_at descending then ID descending.
+Why: a small API change with bounded database results and no schema/dependency change.
+Tradeoffs: existing callers now receive at most twenty rows unless they paginate. Concurrent writes can shift page contents; refresh/save/delete starts at newest. Large offsets are less efficient than cursors.
+Revisit: large datasets or a requirement for stable navigation during concurrent writes.
+
+## D-039 - Explicit private comparison snapshots
+
+Date: 2026-09-18
+Context: user chose saved comparisons and deferred commits.
+Options: browser storage; editable backend records; immutable private snapshots.
+Chosen: additive saved_comparisons table, owner/resume IDs, bounded title/job text, server-calculated result, validated reviewed labels and UTC creation time. Explicit save plus metadata list and read-only detail. Never trust submitted scores.
+Why: supports revisiting results without silently retaining every pasted description.
+Tradeoffs: snapshots store private text, duplicate retry saves possible, no delete/edit/pagination yet; demo storage disposable. Reviewed score uses current formula on saved inputs. No new dependency.
+Revisit: deletion/privacy controls, pagination, idempotency or versioned long-term snapshots.
+
+## D-038 - Explicitly confirmed requirement score
+
+Date: 2026-09-18
+Context: user selected option 3, reviewed requirement scoring.
+Options: implicitly trust automatic required labels; use only explicit user confirmations; persist reviewed scoring on backend.
+Chosen: independent frontend calculation over job terms with user_choice=required, matched via existing resume keywords. Report denominator, missing confirmed terms and unreviewed/uncertain counts. Null for no confirmations or unavailable resume text. Original score retained; export schema v2 adds same calculation.
+Why: gives users control without conflating automatic classification, human judgment and resume evidence. No model/storage/API changes needed.
+Tradeoffs: small confirmed subset can score 100%, explicitly disclosed. Temporary choices reset; no evidence of proficiency or all-job coverage. Export format version changes; no import exists.
+Revisit: saved comparisons, separately confirmed resume proficiency or backend persistence requirements.
+
 ## D-037 - Browser-generated JSON comparison export
 
 Date: 2026-09-18
@@ -410,3 +449,7 @@ Chosen: backend matrix and Ubuntu frontend, Python 3.12/Node 24, read-only permi
 Why: reuse existing commands and expose host-OS compatibility issues without choosing hosting.
 Tradeoffs: additional runner time, first remote run unverified, major action tags may update. No branch-protection setting changed.
 Revisit: initial runner failures, CI duration or adding browser checks.
+
+## D-042 - Editable titles, immutable snapshot contents
+
+Date: 2026-09-18. Context: user continued with title rename and authorized commit/push. Options: rename metadata only or edit saved results. Chosen: owner-protected PATCH of title only, sharing save validation. Why: useful organization without changing recorded evidence. Tradeoff: concurrent renames use last-write-wins. Revisit if collaborative editing or audit history is required.

@@ -49,7 +49,7 @@ class StorageConfigurationTests(unittest.TestCase):
                 return result.stdout
 
             run(str(backend / 'scripts/migrate_database.py'))
-            self.assertIn('0001_initial', run('-m', 'alembic', '-c', str(backend / 'alembic.ini'), 'current'))
+            self.assertIn('0002_saved_comparisons', run('-m', 'alembic', '-c', str(backend / 'alembic.ini'), 'current'))
             self.assertIn('No new upgrade operations', run('-m', 'alembic', '-c', str(backend / 'alembic.ini'), 'check'))
             run('-c', "from app.config import load_data_directory; from app.database import engine; from app.migrations import require_current_schema; from app.routers.resumes import UPLOAD_DIRECTORY; require_current_schema(engine); assert UPLOAD_DIRECTORY == load_data_directory() / 'uploads'; (UPLOAD_DIRECTORY / 'synthetic.txt').write_text('test')")
             run('-c', "from app.routers.resumes import UPLOAD_DIRECTORY; assert (UPLOAD_DIRECTORY / 'synthetic.txt').read_text() == 'test'")

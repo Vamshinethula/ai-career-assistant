@@ -5,7 +5,7 @@ from app.services.resume_parser import extract_text_from_pdf, InvalidResumePDF, 
 from app.services.skill_extractor import extract_skills
 from app.services.role_matcher import match_roles
 from app.services.job_comparison import compare_job_description
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app import models, schemas
@@ -97,6 +97,69 @@ def compare_resume_to_job(
         resume_id=resume.id,
         **compare_job_description(resume.resume_text, request.job_description),
     )
+
+
+@router.post('/{resume_id}/comparisons', response_model=schemas.SavedComparisonDetail, status_code=201)
+def save_comparison(resume_id: int, request: schemas.SaveComparisonRequest,
+                    db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    resume = get_owned_resume(resume_id, db, current_user.id)
+    result = schemas.JobComparisonResponse(resume_id=resume.id,
+        **compare_job_description(resume.resume_text, request.job_description))
+    if not set(request.label_choices) <= set(result.job_skills):
+        raise HTTPException(status_code=422, detail='Labels must refer to detected job skills')
+    saved = models.SavedComparison(resume_id=resume.id, user_id=current_user.id,
+        title=request.title, job_description=request.job_description,
+        result=result.model_dump(), label_choices=request.label_choices)
+    db.add(saved)
+    db.flush()
+    response = schemas.SavedComparisonDetail.model_validate(saved)
+    db.commit()
+    return response
+
+
+@router.get('/{resume_id}/comparisons', response_model=list[schemas.SavedComparisonSummary])
+def list_comparisons(resume_id: int, db: Session = Depends(get_db),
+                     current_user: models.User = Depends(get_current_user),
+                     offset: int = Query(default=0, ge=0),
+                     limit: int = Query(default=20, ge=1, le=100),
+                     search: str = Query(default='', max_length=120)):
+    get_owned_resume(resume_id, db, current_user.id)
+    query = db.query(models.SavedComparison).filter_by(resume_id=resume_id, user_id=current_user.id)
+    if search.strip():
+        query = query.filter(models.SavedComparison.title.icontains(search.strip(), autoescape=True))
+    return query.order_by(
+        models.SavedComparison.created_at.desc(), models.SavedComparison.id.desc()).offset(offset).limit(limit).all()
+
+
+@router.get('/{resume_id}/comparisons/{comparison_id}', response_model=schemas.SavedComparisonDetail)
+def get_comparison(resume_id: int, comparison_id: int, db: Session = Depends(get_db),
+                   current_user: models.User = Depends(get_current_user)):
+    get_owned_resume(resume_id, db, current_user.id)
+    saved = db.query(models.SavedComparison).filter_by(id=comparison_id, resume_id=resume_id,
+                                                     user_id=current_user.id).first()
+    if saved is None:
+        raise HTTPException(status_code=404, detail='Saved comparison not found')
+    return saved
+
+
+@router.delete('/{resume_id}/comparisons/{comparison_id}', status_code=204)
+def delete_comparison(resume_id: int, comparison_id: int, db: Session = Depends(get_db),
+                      current_user: models.User = Depends(get_current_user)):
+    saved = get_comparison(resume_id, comparison_id, db, current_user)
+    db.delete(saved)
+    db.commit()
+    return Response(status_code=204)
+
+
+@router.patch('/{resume_id}/comparisons/{comparison_id}', response_model=schemas.SavedComparisonDetail)
+def rename_comparison(resume_id: int, comparison_id: int, request: schemas.RenameComparisonRequest,
+                      db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    saved = get_comparison(resume_id, comparison_id, db, current_user)
+    saved.title = request.title
+    db.flush()
+    response = schemas.SavedComparisonDetail.model_validate(saved)
+    db.commit()
+    return response
 
 
 @router.post(

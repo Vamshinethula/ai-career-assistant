@@ -20,7 +20,7 @@ async function requestJson(path, options, messages) {
   }
 
   try {
-    return await response.json()
+    return response.status === 204 ? null : await response.json()
   } catch {
     throw new Error('The server returned an unexpected response. Please try again.')
   }
@@ -167,6 +167,10 @@ export async function compareResumeToJob(resumeId, jobDescription, accessToken, 
     422: 'Enter a job description between 1 and 10,000 characters, not just spaces.',
     default: 'Could not compare the job description. Please try again.',
   })
+  return validateJobComparison(result, resumeId, jobDescription)
+}
+
+function validateJobComparison(result, resumeId, jobDescription) {
   const isSkills = (value) => Array.isArray(value)
     && value.every((skill) => typeof skill === 'string' && skill.trim())
     && new Set(value).size === value.length
@@ -202,6 +206,69 @@ export async function compareResumeToJob(resumeId, jobDescription, accessToken, 
     throw new Error('The server returned unexpected requirement labels. Please try again.')
   }
   return result
+}
+
+const savedMessages = {
+  401: 'Your session is no longer valid. Please log in again.',
+  404: 'This resume or saved comparison is no longer available.',
+  422: 'Check the title, job description and reviewed labels.',
+  default: 'Could not complete the saved-comparison request. If saving, refresh the list before retrying; it may have been saved.',
+}
+
+export async function renameSavedComparison(resumeId, comparisonId, title, accessToken, signal) {
+  const saved = await requestJson(`/resumes/${resumeId}/comparisons/${comparisonId}`, {
+    method: 'PATCH', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }), signal,
+  }, { ...savedMessages, default: 'Rename could not be confirmed. Refresh saved comparisons to check the title.' })
+  return validateSavedDetail(saved, resumeId)
+}
+
+export function deleteSavedComparison(resumeId, comparisonId, accessToken, signal) {
+  return requestJson(`/resumes/${resumeId}/comparisons/${comparisonId}`, {
+    method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` }, signal,
+  }, { ...savedMessages, default: 'Deletion could not be confirmed. Refresh saved comparisons before retrying.' })
+}
+
+function validateSavedDetail(saved, resumeId) {
+  if (!Number.isInteger(saved?.id) || saved.resume_id !== resumeId || typeof saved.title !== 'string'
+      || typeof saved.created_at !== 'string' || typeof saved.job_description !== 'string'
+      || !saved.label_choices || Array.isArray(saved.label_choices) || typeof saved.label_choices !== 'object') {
+    throw new Error('The server returned an unexpected saved comparison.')
+  }
+  validateJobComparison(saved.result, resumeId, saved.job_description)
+  if (Object.entries(saved.label_choices).some(([skill, category]) => !saved.result.job_skills.includes(skill)
+    || !['required', 'optional', 'not_required', 'uncertain'].includes(category))) {
+    throw new Error('The server returned unexpected saved labels.')
+  }
+  return saved
+}
+
+export async function saveComparison(resumeId, details, accessToken, signal) {
+  const saved = await requestJson(`/resumes/${resumeId}/comparisons`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(details), signal,
+  }, savedMessages)
+  return validateSavedDetail(saved, resumeId)
+}
+
+export async function listSavedComparisons(resumeId, accessToken, signal, offset = 0, search = '') {
+  const params = new URLSearchParams({ offset: String(offset), limit: '11', search })
+  const rows = await requestJson(`/resumes/${resumeId}/comparisons?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }, signal,
+  }, savedMessages)
+  if (!Array.isArray(rows) || rows.some(row => !Number.isInteger(row?.id) || row.resume_id !== resumeId
+    || typeof row.title !== 'string' || typeof row.created_at !== 'string')) {
+    throw new Error('The server returned an unexpected saved-comparison list.')
+  }
+  return rows
+}
+
+export async function getSavedComparison(resumeId, id, accessToken, signal) {
+  const saved = await requestJson(`/resumes/${resumeId}/comparisons/${id}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }, signal,
+  }, savedMessages)
+  if (saved?.id !== id) throw new Error('The server returned a different saved comparison.')
+  return validateSavedDetail(saved, resumeId)
 }
 
 export async function loginUser(credentials) {

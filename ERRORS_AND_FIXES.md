@@ -1,5 +1,11 @@
 # ERRORS_AND_FIXES.md — AI Career Assistant
 
+## 2026-09-18 - Saved timestamp and history-state verification
+
+Initial saved snapshot API test failed because POST returned created_at with Z while SQLite-backed GET omitted timezone. Added UTC normalization to SavedComparisonSummary. The same test and all 77 backend tests now pass; no existing account/resume timestamps modified.
+
+Lint flagged synchronous state resets in the saved-history effect. Moved resets to action handlers and clear errors after successful async loads. Lint and both browser workflows pass without warnings.
+
 ## 2026-09-18 - Node test runner sandbox restriction
 
 Initial npm test failed with Error: spawn EPERM as Node attempted to spawn the test worker. Approved execution outside the sandbox passed all three tests without source changes. Lint and both builds also passed. Lesson: Node built-in tests can require the same process permissions as Vite in this environment.

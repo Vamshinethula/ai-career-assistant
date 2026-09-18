@@ -80,10 +80,14 @@ The automatic label remains visible, and a separate **Your choice** identifies
 the user's interpretation. **Reset label** or **Use automatic label** removes
 the choice. All categories, including uncertain, can be selected for any detected
 skill. This is transient frontend state: no API submission, database write,
-training signal or score change. Editing, comparing again, closing/switching
+training signal or change to the original keyword score. Editing, comparing again, closing/switching
 resumes, refreshing or logging out clears choices. Browser checks verify keyboard
 selection, reset, unchanged score, original labels, mobile layout and lifecycle.
 
 Before expanding rules, collect additional
 independently labelled examples and measure false definitive labels as well as
 uncertain coverage. Do not quietly classify every unspecified skill as required.
+
+## Reviewed score (2026-09-18)
+
+Explicit user Required choices now drive a separate frontend-only score. Automatic labels do not count as confirmation. Other categories are excluded; unreviewed/uncertain counts and confirmed denominator remain visible. No confirmed terms or unavailable resume text yields null. The keyword score is unchanged. Download schema v2 includes both scores with shared calculation. Seven frontend tests and both browser workflows pass; backend is unchanged.

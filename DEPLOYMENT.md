@@ -1,7 +1,7 @@
 # Deployment readiness and runbook
 
 Status: preparation only. No hosting service has been selected or deployed.
-Local verification includes 74 backend tests, frontend build/lint, and a real
+Local verification includes 77 backend tests, frontend build/lint, and a real
 Chrome workflow. A fresh Windows Python environment passed installation, all tests,
 migrations and application startup; an isolated frontend passed npm ci/build/lint.
 GitHub Windows/Ubuntu backend install/test/migration checks and Ubuntu frontend

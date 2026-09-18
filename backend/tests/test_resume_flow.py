@@ -42,6 +42,7 @@ class ResumeFlowTests(unittest.IsolatedAsyncioTestCase):
         self.app.dependency_overrides[get_db] = test_db
 
     async def request(self, method, path, token=None, payload=None, pdf=None):
+        path, _, query = path.partition('?')
         headers = []
         body = b''
         if token:
@@ -66,12 +67,12 @@ class ResumeFlowTests(unittest.IsolatedAsyncioTestCase):
 
         await self.app({'type': 'http', 'asgi': {'version': '3.0'}, 'http_version': '1.1',
                         'method': method, 'scheme': 'http', 'path': path,
-                        'raw_path': path.encode(), 'query_string': b'', 'root_path': '',
+                        'raw_path': path.encode(), 'query_string': query.encode(), 'root_path': '',
                         'headers': headers, 'server': ('test', 80), 'client': ('test', 1)},
                        receive, send)
         status = next(m['status'] for m in messages if m['type'] == 'http.response.start')
         response = b''.join(m.get('body', b'') for m in messages if m['type'] == 'http.response.body')
-        return status, json.loads(response)
+        return status, json.loads(response) if response else None
 
     async def register_and_login(self, email):
         details = {'full_name': 'Synthetic User', 'email': email, 'password': 'synthetic-test-password'}

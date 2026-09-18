@@ -41,7 +41,7 @@ until both parts of the snapshot are complete.
 ./.venv/Scripts/python.exe -m alembic check
 ```
 
-Expected current revision: `0001_initial (head)`. Check should report no new
+Expected current revision: `0002_saved_comparisons (head)`. Check should report no new
 upgrade operations. A fresh database receives the baseline tables. For an
 unversioned database, the helper compares its schema with the frozen baseline
 before recording the version. A detected mismatch raises an error; inspect it

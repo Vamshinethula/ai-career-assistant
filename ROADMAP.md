@@ -1,5 +1,35 @@
 # ROADMAP.md — AI Career Assistant
 
+## Rename and publication checkpoint - 2026-09-18
+
+Confirmed working: owners can rename saved comparison titles from snapshot details. PATCH validates a nonblank title up to 120 characters; original job text, results, choices and creation time remain unchanged. Unauthorized requests fail; UI handles failure and refreshes history after success. No new migration for rename.
+
+Verification: 81 backend tests, 7 frontend tests, lint/build, normal/demo Chrome workflows passed. User now authorizes commit and push of accumulated reviewed-score and saved-comparison features (save/reopen/delete/pagination/search/rename). Earlier no-commit instructions below are historical. Remote CI is not yet verified for this checkpoint.
+
+Try opening a saved comparison, editing Saved comparison title and choosing Rename comparison. Blank titles cannot submit; API rejects invalid input with 422. Next: verify published CI, then consider exporting reopened snapshots.
+
+## Saved title search - 2026-09-18
+
+Confirmed working: saved history supports submitted title search, Clear search, and distinct no-match feedback. Filtering happens before pagination and retains owner/resume isolation. Search resets to page one; refresh/deletion preserves the active filter; saving resets history and search. No dependencies or migration added.
+
+Verified: 80 backend tests, 7 frontend tests, lint/build and normal/demo Chrome workflows. API covers case-insensitive ASCII matching, trimmed blanks, literal percent/underscore, pagination, invalid length, missing authentication and ownership. Browser covers matching, no matches and clearing. All changes remain uncommitted; remote CI deferred. Next suggested feature: rename saved comparison titles.
+
+## Saved-history pagination complete - 2026-09-18
+
+Ten-entry UI pages and bounded owner-scoped API requests verified. Suggested next feature: saved-comparison title search. Commit remains deferred by user request.
+
+## Saved comparison deletion complete ? 2026-09-18
+
+Owner-protected deletion and UI confirmation are verified, including preserved resumes/PDFs, cancellation and failure/retry. 78 backend tests, 7 frontend tests and both Chrome modes pass. Suggested next incremental feature: paginate saved history. Commit remains deferred by user request.
+
+## Saved comparisons checkpoint - 2026-09-18
+
+Completed explicit private snapshots and history after re-login. Additive migration and data preservation verified; 77 backend tests, 7 frontend tests and both browser modes pass. Next suggested feature: safe saved-comparison deletion with owner checks and confirmation. No commits yet, per user instruction.
+
+## Reviewed requirement score complete - 2026-09-18
+
+Implemented user's selected option 3: separate overlap for explicitly confirmed Required terms, UI counts/limits and version-2 export. Seven frontend tests and both Chrome modes pass. Next: review/commit this checkpoint and verify remote CI. Saved comparisons and resume deletion remain unimplemented, not selected.
+
 ## Comparison export checkpoint - 2026-09-18
 
 Completed JSON download with automatic/user provenance and verified real-browser file output. Next workflow checkpoint: review and commit accumulated feature work, then verify updated GitHub Actions including frontend unit tests. Further product scope can follow a stable checkpoint; saved comparisons/import/PDF reports remain unimplemented.

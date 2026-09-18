@@ -1,5 +1,47 @@
 # PROGRESS.md — AI Career Assistant
 
+## Rename and publication checkpoint - 2026-09-18
+
+Confirmed working: owners can rename saved comparison titles from snapshot details. PATCH validates a nonblank title up to 120 characters; original job text, results, choices and creation time remain unchanged. Unauthorized requests fail; UI handles failure and refreshes history after success. No new migration for rename.
+
+Verification: 81 backend tests, 7 frontend tests, lint/build, normal/demo Chrome workflows passed. User now authorizes commit and push of accumulated reviewed-score and saved-comparison features (save/reopen/delete/pagination/search/rename). Earlier no-commit instructions below are historical. Remote CI is not yet verified for this checkpoint.
+
+Try opening a saved comparison, editing Saved comparison title and choosing Rename comparison. Blank titles cannot submit; API rejects invalid input with 422. Next: verify published CI, then consider exporting reopened snapshots.
+
+## Saved title search - 2026-09-18
+
+Confirmed working: saved history supports submitted title search, Clear search, and distinct no-match feedback. Filtering happens before pagination and retains owner/resume isolation. Search resets to page one; refresh/deletion preserves the active filter; saving resets history and search. No dependencies or migration added.
+
+Verified: 80 backend tests, 7 frontend tests, lint/build and normal/demo Chrome workflows. API covers case-insensitive ASCII matching, trimmed blanks, literal percent/underscore, pagination, invalid length, missing authentication and ownership. Browser covers matching, no matches and clearing. All changes remain uncommitted; remote CI deferred. Next suggested feature: rename saved comparison titles.
+
+## Saved-history pagination - 2026-09-18
+
+Confirmed working: history displays ten entries per page with Newer/Older controls. API validates offset >= 0 and limit 1..100 (default 20), preserving owner checks and newest-first ordering. Refresh/save/delete returns to newest history.
+
+Verified: 79 backend tests, 7 frontend tests, lint/build and normal/demo Chrome workflows. API covers page boundaries, complete ordering, empty pages, bad parameters and ownership; browser covers eleven snapshots across two pages and disabled final-page navigation. No blockers or schema changes. Changes uncommitted per request; remote CI awaits future commit/push. Next suggested feature: search saved comparisons by title.
+
+## Saved comparison deletion ? 2026-09-18
+
+? Confirmed working: owners can permanently delete individual saved snapshots after in-app confirmation. Resume text, PDFs and other snapshots remain unchanged. Missing authentication returns 401; foreign/missing snapshots return 404; success returns empty 204.
+
+Verification: 78 backend tests, 7 frontend tests, lint, production build, and normal/demo Chrome workflows pass. Browser checks cover cancellation, network failure/retry and persisted removal after refresh. Synthetic data only; no personal snapshots deleted. No schema changes for deletion.
+
+Next suggested checkpoint: saved-history pagination as the list grows. No blockers. Remote CI remains pending a future commit/push; all changes remain uncommitted as requested.
+
+## Saved comparisons complete locally - 2026-09-18
+
+User chose saved comparisons and deferred commits. Implemented explicit owner-private snapshot save, metadata history and read-only reopen after re-login. Stores title/job text/server-recomputed results/validated choices; automatic results are immutable, reviewed score derives from saved inputs. Unsaved work remains transient; disposable demo resets can erase snapshots.
+
+Verified 77 backend tests, enhanced recovery drill with saved row, 7 frontend tests, lint, both builds and normal/demo Chrome save failure/retry/logout/login/reopen/mobile checks. Applied additive migration 0002_saved_comparisons after ignored SQLite backup; existing user/resume rows unchanged, integrity and alembic check pass. UTC date normalization fixes SQLite reload consistency. No dependencies added. Restart normal backend if it does not reload automatically.
+
+Changes remain uncommitted per user instruction; earlier reviewed-score changes preserved. No remote CI run. Next suggested feature: owner-protected saved-comparison deletion. Editing/deletion/pagination/idempotent saves are not implemented; refresh history before retrying a save with uncertain outcome. Details: backend/evaluation/SAVED_COMPARISONS.md.
+
+## Reviewed requirement score - 2026-09-18
+
+User selected feature 3. Confirmed working: separate reviewed score uses only explicit user Required choices, detects confirmed terms from existing resume matches, reports denominator/missing terms and unreviewed/uncertain counts. Null until at least one confirmation and readable resume text; zero means confirmed requirements have no detected matches. Original keyword score unchanged.
+
+Verified 7 frontend tests, lint, normal/demo builds and both Chrome workflows, including 100% subset explanation, reset and downloaded v2 JSON. No backend/database changes; prior 74 backend tests retained. Choices remain transient. Next: review/commit this feature checkpoint and verify remote CI; no new remote run yet. Changes uncommitted.
+
 ## Feature checkpoint pushed and CI passed - 2026-09-18
 
 Confirmed working: feature commit e93392001eca1722eb5fbb12f2c763b32c65ccf5 is pushed to origin/main. [Project checks run 35356842127](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35356842127) passed all three jobs: backend Windows and Ubuntu (74 tests, dependency checks, fresh migration/model agreement), frontend Ubuntu (3 export tests, lint and production build). Local normal/demo Chrome and build evidence remains recorded separately; browser tests are not in CI.

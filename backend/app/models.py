@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy import Text
+from sqlalchemy import JSON
 from app.database import Base
 from datetime import datetime, timezone
 
@@ -35,3 +36,15 @@ class Resume(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+class SavedComparison(Base):
+    __tablename__ = 'saved_comparisons'
+    id = Column(Integer, primary_key=True)
+    resume_id = Column(Integer, ForeignKey('resumes.id'), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    job_description = Column(Text, nullable=False)
+    result = Column(JSON, nullable=False)
+    label_choices = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
