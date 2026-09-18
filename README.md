@@ -9,6 +9,11 @@ Matching uses local rules. No LLM or external AI API is currently used.
 - Registration, bcrypt password hashing, JWT login and personal dashboard.
 - PDF upload, local file storage and extracted text saved in SQLite.
 - Owner-protected resume lists, text, detected skills and example role overlaps.
+- Per-role skill review checklists with temporary progress and truthful resume guidance.
+- Compare an uploaded resume with pasted job-description text using catalog skill overlap.
+- Review tentative requirement labels and their source wording alongside the comparison.
+- Choose temporary requirement labels while keeping automatic labels and scores visible.
+- Download a JSON comparison summary containing results, source excerpts and your choices.
 - React loading, retry, empty-state and session-error feedback.
 
 Role percentages measure keyword overlap with four authored example profiles,
@@ -40,7 +45,8 @@ flowchart LR
 
 Tested environment: Python 3.12 and Node.js 24 with npm. Git is needed to clone;
 Google Chrome is needed for the optional browser test. A fresh Python environment and isolated frontend install/build were verified on
-the current Windows machine. A new machine or Linux host remains unverified.
+the current Windows machine. GitHub Windows/Ubuntu backend checks and Ubuntu frontend checks also passed;
+a deployment host remains unverified.
 
 ### Clone
 
@@ -103,9 +109,33 @@ running on their ports; `Ctrl+C` stops a server in its terminal.
 3. Open **View text**, **View skills** and **View role overlaps**.
 4. Compare the results with the PDF, then log out.
 
+Under a role, open **Review next steps** to review terms not detected in your
+resume. Check a box after reviewing that term; this does not change the role
+score or certify a skill. Progress clears when role overlaps close, you switch
+resumes, refresh, or log out. No checklist data is saved to the server.
+
+Choose **Compare job description**, paste up to 10,000 characters, and click
+**Compare skills**. With the sample resume above, `Python Docker Kubernetes`
+returns 66.7% overlap and Kubernetes not detected in the resume. No catalog
+matches produces an explanation without a score. Editing clears stale results;
+closing the comparison clears its text and results. The backend does not persist
+the pasted text or send it to an external AI service. Keyword detection does not
+distinguish required, optional, or negated mentions and is not a hiring prediction.
+
+After comparison, **Download comparison summary** saves a readable JSON file.
+It includes automatic labels, separate user choices, evidence and limitations.
+It excludes resume text and authentication tokens, but source excerpts may
+contain private job-description text. Review before sharing. Files remain on
+your device after logout; this version does not import summaries back into the app.
+
 A PDF containing `Python FastAPI SQL Git Docker` should produce those five
 skills and 100% overlap with the illustrative Python backend profile.
 Refreshing the page clears the current in-memory login.
+
+The first public deployment will be a disposable synthetic demo. Its frontend
+uses `npm run build:demo` to show data-reset and synthetic-data guidance.
+`npm run dev:demo` previews that mode locally; it does not clear any local data.
+See [hosting plan](HOSTING_PLAN.md) for configuration and isolated verification.
 
 ## API reference
 
@@ -121,6 +151,7 @@ Base URL: `http://127.0.0.1:8000`. Request schemas are in `/docs`.
 | GET | `/resumes/{resume_id}` | Resume metadata and text | 200 |
 | GET | `/resumes/{resume_id}/skills` | Detected catalog terms | 200 |
 | GET | `/resumes/{resume_id}/matches` | Illustrative role overlaps | 200 |
+| POST | `/resumes/{resume_id}/compare-job` | Compare pasted job-description skills | 200 |
 
 User/resume routes require authentication. In Postman select **Authorization →
 Bearer Token** and paste only the token. GET requests need no body. For uploads,
@@ -130,6 +161,19 @@ and choose a PDF.
 Replace `{resume_id}` with a numeric ID. First call `GET /resumes`, then use a
 row's `id`, not `user_id`. If it is 3, request
 `http://127.0.0.1:8000/resumes/3/matches`.
+
+For job comparison, POST to `/resumes/3/compare-job` (replace 3 with your own
+resume ID), use the same bearer token and Body -> raw -> JSON:
+
+```json
+{"job_description": "Python Docker Kubernetes"}
+```
+
+Blank/over-limit descriptions return 422; another user's resume returns 404.
+The response includes source excerpts for tentative required, optional, explicitly
+not-required and uncertain labels. Excerpts can include the full input in fallback
+cases; neither text nor results are persisted. A null overlap score means
+missing readable resume text or no catalog terms in the job description.
 
 Expected failures: missing/invalid authentication `401`, foreign/missing resume
 `404`, duplicate email `409`, invalid input `422`, invalid/empty/corrupt or
@@ -143,9 +187,13 @@ From **`backend/`**:
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -q
 .\.venv\Scripts\python.exe -m evaluation.evaluate_skills
+.\.venv\Scripts\python.exe -m evaluation.evaluate_jobs
+.\.venv\Scripts\python.exe -m evaluation.evaluate_requirements
 ```
 
-Current verified suite: **58 passing backend tests**. Evaluation reports both
+Current locally verified suite: **74 passing backend tests**, including job
+comparison and offline backup recovery tests. The last verified remote CI run covered 58 tests.
+Evaluation reports both
 supported examples and known limitations using synthetic development cases;
 see [evaluation details](backend/evaluation/README.md).
 
@@ -154,6 +202,7 @@ From **`frontend/`**:
 ```powershell
 npm.cmd run build
 npm.cmd run lint
+npm.cmd test
 ```
 
 From the **project root**:
@@ -234,4 +283,4 @@ default backend location; for custom storage use its configured database path.
 
 ## Automated checks
 
-[Project checks](.github/CI.md) defines GitHub Actions backend tests/migrations on Windows and Ubuntu plus frontend lint/build on Ubuntu. The workflow is implemented but awaits its first remote run; local Windows checks have passed. It does not deploy the application.
+[Project checks](.github/CI.md) defines GitHub Actions backend tests/migrations on Windows and Ubuntu plus frontend lint/build on Ubuntu. The [first remote run](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) passed all three jobs for commit `1c468db`. It does not deploy the application.

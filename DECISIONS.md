@@ -1,5 +1,95 @@
 # DECISIONS.md — AI Career Assistant
 
+## D-037 - Browser-generated JSON comparison export
+
+Date: 2026-09-18
+Context: user continued after proposed downloadable reviewed summary.
+Options: server-generated PDF; browser text/JSON; persisted comparison records.
+Chosen: version-labelled JSON generated in browser with explicit result/evidence/user-choice fields and limitations, fixed numeric-resume filename, no credentials or resume text. No persistence/import or dependencies.
+Why: preserves structured provenance and unknown scores with a small testable implementation, no extra data transfer.
+Tradeoffs: JSON is less polished than PDF; source excerpts can contain private text and downloaded files outlive logout. Browser controls final save behavior. No import/round-trip guarantee.
+Revisit: demand for formatted reports, saved comparisons or versioned import.
+
+## D-036 - Temporary user review separate from automatic labels
+
+Date: 2026-09-18
+Context: user continued after proposed requirement-label review feature.
+Options: persistent overrides; frontend-only review; change matching score from overrides.
+Chosen: per-skill local labelChoices with explicit user attribution, automatic category/evidence retained, reset and clear on edit/resubmit/unmount. No score changes or API writes.
+Why: small reversible review workflow without introducing saved-comparison data models or presenting human choices as classifier output.
+Tradeoffs: choices disappear on panel close/refresh/logout, do not improve the classifier and do not feed a requirement-based score.
+Revisit: saved comparisons, exports or separately defined reviewed scoring.
+
+## D-035 - Add requirement context without changing scores
+
+Date: 2026-09-18
+Context: standalone classifier ready for comparison API and UI.
+Options: replace scores; add separate labels/evidence; separate API round trip.
+Chosen: additive required requirements field in comparison response, typed categories, strict client validation and expandable plain-text excerpts. Match scoring unchanged. Align labels to whole-text scoring skills; unsupported cross-line aliases use uncertain original-input evidence.
+Why: gives reviewable context with existing authentication and request lifecycle, avoiding silent score reinterpretation.
+Tradeoffs: frontend/backend must deploy together; transient response can echo full input as evidence. Rule coverage remains narrow and labels tentative. No persistence or database migration.
+Revisit: user-reviewed labels, response size, versioned API requirements or validated requirement-based scoring.
+
+## D-034 - Conservative requirement labels with evidence
+
+Date: 2026-09-18
+Context: next task after evaluation exposed limits of interpreting keyword mentions as requirements.
+Options: broad regex inference; external model; narrow supported phrases with explicit abstention.
+Chosen: standalone pure service, required/optional/not_required/uncertain categories, full-fragment templates, known-alias lists only and source evidence. No production wiring or scoring change yet.
+Why: small inspectable checkpoint with 22 synthetic policy cases; avoids assigning requirements from ambiguous prose. No external cost or data transfer.
+Tradeoffs: many uncertain results, no heading inheritance/alternatives/semantic scope, inherited catalog limits. not_required means no obligation, not prohibition. Evaluation is same-author synthetic policy conformance, not independent accuracy evidence.
+Revisit: API/UI review workflow, independent labelled cases or evidence supporting broader context rules.
+
+## D-033 - Preserve keyword contract after context evaluation
+
+Date: 2026-09-18
+Context: required/optional/negated job-description evaluation requested.
+Options: broad negation regex; maintain mention score with stronger explanation; separate requirement classifier after broader evaluation.
+Chosen: preserve mention score, add 16-case regression evaluation and explicit equal-weight UI explanation; record semantic gaps independently.
+Why: 5/12 exact required-only interpretation sets and not optional/not only counterexamples do not justify a broad exclusion rule. Existing API accurately promises mentions, not requirements.
+Tradeoffs: optional/negated terms still count; React ambiguity, catalog gaps and negated resume experience remain. No semantic improvement claimed. Evaluation labels are synthetic development examples.
+Revisit: independent labelled examples and defined required/optional/negated/uncertain outputs support a separate classifier or reviewed user corrections.
+
+## D-032 - Stateless job-description keyword comparison
+
+Date: 2026-09-17
+Context: user continued product work after proposed pasted-job comparison.
+Options: reuse deterministic catalog; introduce embeddings/LLM; persist job-description models.
+Chosen: authenticated owner-protected POST with 1-10,000-character body, existing skill extraction on both texts, unique job terms as score denominator, null for unavailable comparison. Transient frontend state; no job-text persistence.
+Why: explainable first comparison with defined inputs/outputs and synthetic HTTP/browser evaluation; no new cost or external privacy transfer.
+Tradeoffs: no semantic requirements/negation/seniority understanding, incomplete catalog, no saved comparisons. Length validation is not a host-level request-body limit. UI uses JavaScript character length, conservatively counting surrogate pairs as two.
+Revisit: representative evaluation, saved-comparison requirements or evidence that semantic matching improves useful results.
+
+## D-031 - Temporary skill review from existing role results
+
+Date: 2026-09-17
+Context: user requested product features; current role results list undetected terms without a review workflow.
+Options: rule-based review checklist; persisted learning-plan model; LLM recommendations.
+Chosen: frontend component using existing not_detected_skills and temporary React state. Include truthful-evidence/practice guidance and distinguish review from mastery.
+Why: small testable extension of the existing product, no new data model, cost or privacy transfer. Input is the existing role response; output is a checklist/count, evaluated by browser keyboard/toggle/reset/empty-branch checks.
+Tradeoffs: closing results loses progress; guidance is general and only covers returned example roles, not comprehensive career advice. No AI claims or skill certification.
+Revisit: user demand for saved learning plans, richer job comparison or evaluated personalized guidance.
+
+## D-030 - Disposable first public demo
+
+Date: 2026-09-17
+Context: user explicitly selected disposable demo over persistent hosting.
+Options: ephemeral synthetic portfolio demo; persistent paid storage and operational backups.
+Chosen: synthetic demo with Vite demo-mode notice and separate build command, ephemeral hosted SQLite/uploads, no migration of personal local data. Provider remains a candidate until setup.
+Why: demonstrate the existing workflow without introducing durable hosted storage requirements.
+Tradeoffs: users may need to register again after host resets; cold starts can exceed the current API timeout. Notice is guidance, not enforcement. No app reset job is added.
+Revisit: durable accounts, real resumes, reliable availability or production use.
+
+## D-029 - Offline same-path recovery verification
+
+Date: 2026-09-17
+Context: SQLite records and separate PDFs need a verified recovery procedure before persistent hosting.
+Options: document backup only; add an isolated recovery drill; build a production backup/relocation service now.
+Chosen: synthetic offline recovery drill and runbook using SQLite backup API plus uploads copy, restored to the same path. Existing API driver is reused.
+Why: verifies the current storage contract without touching personal data or choosing a host.
+Tradeoffs: writers must stop across both copies; saved file paths prevent assuming arbitrary relocation. No scheduler, retention, off-machine storage or hosted recovery guarantee.
+Revisit: hosting selection, changed storage layout, live backup requirements or cross-machine recovery.
+
 This file records important project decisions so future development does not repeatedly revisit or silently reverse them.
 
 ---

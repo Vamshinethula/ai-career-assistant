@@ -1,5 +1,62 @@
 # CHANGELOG.md — AI Career Assistant
 
+## Feature checkpoint review - 2026-09-18
+
+Reviewed accumulated comparison/requirement/review/export features, demo mode, recovery verification and documentation for Git checkpoint. Latest local evidence: 74 backend tests, 3 frontend tests, lint, normal/demo builds and both Chrome workflows pass. Private data/configuration and generated output are ignored. Preparing commit/push; updated remote CI remains pending. No deployment is part of this checkpoint.
+
+## Export comparison summaries - 2026-09-18
+
+Added browser-only JSON downloads with automatic/user labels, evidence, score meaning and privacy guidance. Added three serializer tests and CI test command; verified actual Chrome downloads and error/retry in both modes, lint and both builds. Backend unchanged; remote workflow run pending.
+
+## Review requirement labels - 2026-09-18
+
+Added per-skill temporary user label selection and reset while preserving automatic evidence and keyword score. Native labelled controls support keyboard input. Verified lint, both builds and both browser workflows including lifecycle resets. No backend or database changes.
+
+## Display job requirement labels and evidence - 2026-09-18
+
+Added typed requirement results to comparison response and dashboard source disclosures. Preserved keyword scores with uncertain fallback for cross-line aliases. Added API/browser regression checks and client evidence validation. Verified 74 backend tests, lint, both builds and both Chrome workflows; no schema migration or dependency change.
+
+## Conservative requirement classification service - 2026-09-18
+
+Added explicit-phrase required/optional/not_required/uncertain classification with original evidence and conflict handling. Added 22 synthetic policy examples, evaluator, documentation and five regression tests. All 72 backend tests pass. Service is not yet integrated into the comparison API or UI; scores unchanged.
+
+## Evaluate job context - 2026-09-18
+
+Added 16 synthetic job-comparison cases, a repeatable evaluator and regression integration. Documented required/optional/negation/catalog gaps and exact metrics. Clarified equal weighting next to UI scores; matching algorithm unchanged. Verified 67 backend tests, lint, demo build and Chrome workflow.
+
+## Compare resumes with job descriptions - 2026-09-17
+
+- Added owner-protected comparison endpoint with bounded input, structured results and null-score empty states.
+- Added per-resume pasted-text form with transient results, loading/errors/retry, stale-result clearing and cancellation.
+- Reused catalog extraction; no external AI, persistence, schema change or dependencies.
+- Verified 66 backend tests, lint, normal/demo builds, both Chrome flows and client validation probes. Documented synthetic evaluation and known contextual limitations.
+
+## Skill review checklist - 2026-09-17
+
+Added per-role expandable next steps with temporary reviewed-term checkboxes and full-overlap guidance. Reuses existing matching results without API/schema changes. Verified lint, both builds and both Chrome workflows including keyboard/count/reset/score/mobile checks. Updated product direction and usage documentation.
+
+## Disposable demo mode - 2026-09-17
+
+- Added demo-only synthetic-data/reset/cold-start notice and dev:demo/build:demo commands.
+- Extended isolated Chrome checks for demo notice and normal-mode absence.
+- Verified lint, both builds/browser workflows and four migration checks. Recorded user-selected disposable policy and deployment settings. No backend behavior changes or deployment.
+
+## Hosting proposal - 2026-09-17
+
+Added a reviewed candidate deployment layout with build/start commands, configuration, storage-policy choices and hosted verification steps. Corrected current local test count to 60. Provider/data-policy selection remains pending; nothing deployed.
+
+## Offline backup recovery drill - 2026-09-17
+
+- Added two isolated tests for complete same-path SQLite/PDF recovery and incomplete database-only recovery.
+- Verified restored login, resume results, ownership and PDF bytes; all 60 backend tests pass on Windows.
+- Added recovery runbook and linked migration/deployment guidance. No application changes or real-data restore.
+
+## First remote CI run passed - 2026-09-16
+
+Confirmed working: [Project checks run 35131859172](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) completed successfully for pushed commit 1c468db4a8f8c76923e5a6f04926576d86fa5e09. GitHub API verified success for every step in Backend (windows-latest), Backend (ubuntu-latest), and Frontend (Ubuntu). Backend pinned installation, pip check, 58-test suite, fresh migration and model comparison passed on both OS runners. Frontend npm ci, lint and build passed on Ubuntu.
+
+Previous workflow/Linux uncertainty is resolved for these checks. This is not a hosted deployment, browser CI run, or persistence/restore test. No code fix was needed. Working tree was clean at session start; only verification documentation changed. Next: choose deployment data policy/hosting, or verify backup recovery locally before persistent deployment. No host or paid service selected. Documentation changes remain uncommitted.
+
 ## Continuous integration workflow added - 2026-09-16
 
 Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.

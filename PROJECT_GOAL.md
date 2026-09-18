@@ -123,7 +123,9 @@ Backend foundation has already reached:
 - PDF text extraction,
 - storing extracted resume text.
 
-The immediate development priority is now the **frontend**.
+The frontend now supports authentication, resume upload/text/skills, role overlaps
+and temporary skill review checklists. As of 2026-09-17, the user wants to continue
+product features; public deployment preparation remains available separately.
 
 ## Success Definition
 

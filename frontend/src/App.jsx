@@ -46,6 +46,14 @@ function App() {
         </ol>
       </section>
       <div id="workspace" tabIndex={-1}>
+      {import.meta.env.MODE === 'demo' && (
+        <aside className="demo-notice" aria-labelledby="demo-title">
+          <h2 id="demo-title">Disposable portfolio demo</h2>
+          <p>Use fictional account details, a unique test password, and a synthetic resume. Do not upload personal information.</p>
+          <p>Accounts and uploaded resumes may disappear when the demo sleeps, restarts, or is updated. If your account has reset, register again.</p>
+          <p>The server may take about a minute to wake up. If a request fails, wait and try again.</p>
+        </aside>
+      )}
       {accessToken ? (
         <Dashboard accessToken={accessToken} onLogout={() => setAccessToken(null)}
           onSessionExpired={handleSessionExpired} />

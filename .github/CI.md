@@ -7,15 +7,15 @@ and does not require application secrets.
 | Job | Checks |
 | --- | --- |
 | Backend (Windows and Ubuntu) | Python 3.12, pinned dependency install, pip check, all unittest tests, fresh migrations, Alembic model comparison |
-| Frontend (Ubuntu) | Node 24, npm ci, lint, production build |
+| Frontend (Ubuntu) | Node 24, npm ci, lint, comparison-export unit tests, production build |
 
 Tests generate their own signing keys and synthetic data. Migration commands
 use the disposable runner checkout. No databases, uploaded resumes or secrets
 are uploaded as artifacts. Dependency caches are keyed from dependency files.
 
 The local clean Windows environment passed all 58 backend tests and frontend
-install/build/lint before this workflow was added. The workflow and Linux jobs
-are **implemented but unverified** until their first successful GitHub run.
+install/build/lint before this workflow was added. The first [GitHub run](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172)
+passed all three jobs for commit `1c468db`, including the Linux checks.
 The Windows Chrome smoke test remains a separate local check.
 
 After committing and pushing the complete checkpoint, open the repository's

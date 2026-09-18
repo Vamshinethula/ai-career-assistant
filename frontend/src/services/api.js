@@ -155,6 +155,55 @@ export async function getResumeMatches(resumeId, accessToken, signal) {
   return result
 }
 
+export async function compareResumeToJob(resumeId, jobDescription, accessToken, signal) {
+  const result = await requestJson(`/resumes/${resumeId}/compare-job`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ job_description: jobDescription }),
+    signal,
+  }, {
+    401: 'Your session is no longer valid. Please log in again.',
+    404: 'This resume is no longer available.',
+    422: 'Enter a job description between 1 and 10,000 characters, not just spaces.',
+    default: 'Could not compare the job description. Please try again.',
+  })
+  const isSkills = (value) => Array.isArray(value)
+    && value.every((skill) => typeof skill === 'string' && skill.trim())
+    && new Set(value).size === value.length
+  if (result?.resume_id !== resumeId || result.method !== 'keyword_overlap'
+      || typeof result.text_available !== 'boolean'
+      || !isSkills(result.job_skills) || !isSkills(result.matched_skills)
+      || !isSkills(result.not_detected_skills)) {
+    throw new Error('The server returned an unexpected comparison. Please try again.')
+  }
+  const combined = [...result.matched_skills, ...result.not_detected_skills]
+  const expectedScore = result.text_available && result.job_skills.length
+    ? 100 * result.matched_skills.length / result.job_skills.length : null
+  // Allow one-decimal rounding; Python and JavaScript differ on exact ties.
+  const validScore = expectedScore === null ? result.skill_overlap_percent === null
+    : Number.isFinite(result.skill_overlap_percent) && result.skill_overlap_percent >= 0
+      && result.skill_overlap_percent <= 100
+      && Math.abs(result.skill_overlap_percent - expectedScore) <= 0.0500001
+  if (new Set(combined).size !== combined.length || combined.length !== result.job_skills.length
+      || combined.some((skill) => !result.job_skills.includes(skill))
+      || (!result.text_available && result.matched_skills.length > 0)
+      || !validScore) {
+    throw new Error('The server returned an unexpected comparison. Please try again.')
+  }
+  const categories = ['required', 'optional', 'not_required', 'uncertain']
+  if (!Array.isArray(result.requirements) || result.requirements.length !== result.job_skills.length
+      || new Set(result.requirements.map((row) => row?.skill)).size !== result.requirements.length
+      || result.requirements.some((row) => !result.job_skills.includes(row?.skill)
+        || !categories.includes(row.category) || !Array.isArray(row.evidence) || !row.evidence.length
+        || row.evidence.some((item) => typeof item?.text !== 'string' || !item.text.trim()
+          || !jobDescription.includes(item.text) || !categories.includes(item.category))
+        || row.category !== (new Set(row.evidence.map((item) => item.category)).size === 1
+          ? row.evidence[0].category : 'uncertain'))) {
+    throw new Error('The server returned unexpected requirement labels. Please try again.')
+  }
+  return result
+}
+
 export async function loginUser(credentials) {
   const result = await postJson('/auth/login', credentials, {
     401: 'Invalid email or password.',

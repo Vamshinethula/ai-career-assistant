@@ -4,6 +4,7 @@ from uuid import uuid4
 from app.services.resume_parser import extract_text_from_pdf, InvalidResumePDF, ResumePageLimitExceeded
 from app.services.skill_extractor import extract_skills
 from app.services.role_matcher import match_roles
+from app.services.job_comparison import compare_job_description
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -81,6 +82,20 @@ def get_resume_matches(
         text_available=bool(resume.resume_text and resume.resume_text.strip()),
         extracted_skills=skills,
         matches=match_roles(skills),
+    )
+
+
+@router.post('/{resume_id}/compare-job', response_model=schemas.JobComparisonResponse)
+def compare_resume_to_job(
+    resume_id: int,
+    request: schemas.JobComparisonRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    resume = get_owned_resume(resume_id, db, current_user.id)
+    return schemas.JobComparisonResponse(
+        resume_id=resume.id,
+        **compare_job_description(resume.resume_text, request.job_description),
     )
 
 

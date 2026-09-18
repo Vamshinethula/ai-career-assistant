@@ -31,12 +31,62 @@
   margin-bottom: 48px;
 }
 
+.skill-review {
+  margin: 16px 0 24px;
+  padding: 16px;
+  border: 1px solid #7b9087;
+  border-radius: 8px;
+}
+
+.skill-review summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+.skill-review summary:focus-visible {
+  outline: 3px solid #18342f;
+  outline-offset: 3px;
+}
+
+.skill-review-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.skill-review-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.skill-review-list input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .eyebrow {
   color: #42665a;
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.demo-notice {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border: 2px solid #8b651b;
+  border-radius: 12px;
+  background: #fff8e6;
+  color: #493811;
+}
+
+.demo-notice h2 {
+  margin-top: 0;
 }
 
 h1 {

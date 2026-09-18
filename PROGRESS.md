@@ -1,5 +1,74 @@
 # PROGRESS.md — AI Career Assistant
 
+## Feature checkpoint review - 2026-09-18
+
+Reviewed accumulated comparison/requirement/review/export features, demo mode, recovery verification and documentation for Git checkpoint. Latest local evidence: 74 backend tests, 3 frontend tests, lint, normal/demo builds and both Chrome workflows pass. Private data/configuration and generated output are ignored. Preparing commit/push; updated remote CI remains pending. No deployment is part of this checkpoint.
+
+## Download comparison summary - 2026-09-18
+
+Confirmed working: browser-generated JSON summary with timestamp, resume ID, keyword results, automatic categories, separate user choices, source evidence and limitations. Explicit field selection excludes tokens/resume text. Source excerpts may contain private input; UI explains downloads remain locally after logout. No server write or import feature.
+
+Verified 3 frontend unit tests, lint, both builds, both full Chrome workflows with actual downloaded-file parsing and forced download failure/retry. Backend unchanged; prior 74-test evidence retained. Added npm test to CI, remote run pending. Next suggested checkpoint: review and commit accumulated feature work, then verify remote CI. Changes remain uncommitted; earlier edits preserved.
+
+## Temporary user requirement labels - 2026-09-18
+
+Confirmed working: users can choose a category for each detected job skill while retaining automatic labels/source evidence; reset restores automatic use. Choices are clearly attributed, never submitted or persisted, and do not alter keyword score. Editing/recomparing/closing clears state.
+
+Verified lint, normal/demo builds and both complete Chrome workflows, including keyboard selection, reset, unchanged score, lifecycle and mobile layout. Backend unchanged; previous 74-test result retained. Next suggested product checkpoint: export a comparison summary containing automatic labels, user choices and limitations. No new dependencies or schema changes. All changes uncommitted; earlier edits preserved.
+
+## Requirement labels integrated end to end - 2026-09-18
+
+Confirmed working: comparison API now returns typed requirements/evidence, shown in dashboard with expandable original wording and uncertainty explanation. Existing scores unchanged. Cross-line aliases fall back to uncertain evidence without changing scoring skills.
+
+Verified all 74 backend tests, frontend lint, normal/demo builds, both Chrome workflows and eight malformed client-response probes. Browser checks all labels/conflicts, keyboard disclosure, mobile/reset and safe literal markup. No database/dependency changes. No current blocker; remote CI/host verification remains pending. Next suggested product checkpoint: let users explicitly review uncertain labels before considering any requirement-based score. All accumulated changes uncommitted; prior edits preserved.
+
+## Requirement classifier service verified - 2026-09-18
+
+Confirmed working: conservative standalone service labels catalog skill mentions required, optional, not_required or uncertain and retains original fragment evidence. Explicit supported phrases only; conflicts/unclassified mentions force uncertainty. No API/dashboard integration or score changes in this checkpoint.
+
+Verified 22/22 synthetic policy cases (12 development, 10 review), five focused tests and all 72 backend tests. Existing 16-case keyword baseline remains unchanged. Across fixtures 16 skill records classified, 16 uncertain; results are same-author policy checks, not independently labelled accuracy evidence. No dependencies/schema/data changes. Next: expose labels/evidence in comparison API and dashboard, preserving scores and testing ownership/client/browser behavior. Changes remain uncommitted; prior edits preserved.
+
+## Comparison context evaluation completed - 2026-09-18
+
+Confirmed working: 16/16 synthetic keyword-contract cases; 67 backend tests; frontend lint/demo build; complete demo Chrome workflow. Required-only interpretation probe matches 5/12 sets (12 true positives, 7 false positives, 1 false negative; precision 63.2%, recall 92.3%). This measures misuse of mention output as requirements, not a implemented classifier or real-world accuracy.
+
+Added fixtures/evaluator and a regression test; results explain equal weighting beside the score. No matching-score change: broad negation rules would break not optional/not only examples. No schema/dependency/data changes. Next: define required/optional/negated/uncertain classification and broader independent examples before any semantic scoring change. Product comparison remains usable with explicit limits. Changes uncommitted; prior work preserved.
+
+## Job-description comparison - 2026-09-17
+
+Confirmed working: 66 backend tests, frontend lint, normal/demo builds and normal/demo Chrome workflows. Added owner-protected POST /resumes/{resume_id}/compare-job, 1-10,000-character validation and deterministic service using existing skill extraction. Returns job/shared/not-detected terms and nullable percentage; no persistence or external AI call.
+
+UI supports pasted text, pending/errors/retry, clear-on-edit/close and cancellation on unmount. Verified API ownership/validation/boundaries, aliases, null versus zero, browser empty/failure/retry/mobile/reset paths. Isolated client check accepts Python rounding ties and rejects malformed/inconsistent responses. No schema/dependency changes. Next: improve comparison quality with explicit synthetic required/optional/negated examples before semantic features. Hosted verification remains pending. All changes uncommitted; earlier work preserved.
+
+## Skill review checklist - 2026-09-17
+
+Confirmed working: per-role Review next steps disclosure, temporary reviewed checkboxes/count, full-overlap guidance and reset after closing role results. Lint, normal/demo builds and both Chrome workflows pass, including keyboard Space, unchanged score, network retry and mobile overflow. No backend/schema/dependency changes; prior 60-backend-test evidence retained.
+
+User redirected work toward product features. Reuses not_detected_skills; no LLM, paid API or personal-data transfer. Checklist progress is not saved and does not indicate mastery. Next suggested feature checkpoint: define comparison against a user-pasted job description with explicit input/output/evaluation before implementation. Deployment stays prepared but unpublished. Changes uncommitted, existing edits preserved.
+
+## Disposable demo prepared - 2026-09-17
+
+Confirmed working locally: demo/normal frontend builds, lint, both real Chrome workflows and four migration tests. Demo build shows synthetic-data/reset guidance before and after login; normal build omits it. Mobile overflow, failures/retries, uploads/results and logout pass. Existing full 60-backend-test evidence retained; no backend application changes.
+
+Added dev:demo/build:demo commands and isolated browser mode on port 5174. User selected disposable synthetic data. HOSTING_PLAN.md records exact build/storage settings. No local data deletion, reset scheduler, public deployment or paid service. Next: review Git checkpoint and select/provision the proposed free hosting services with actual URLs and a fresh hosted key, then run hosted smoke/reset checks. Changes remain uncommitted; prior edits preserved.
+
+## Hosting proposal prepared - 2026-09-17
+
+Added HOSTING_PLAN.md with a candidate Render backend/static-site layout, repository-specific commands, configuration and separate demo/persistent acceptance checks. Provider documentation reviewed; no service selected, purchased or deployed. Data-policy question is pending. Next: receive that choice, then implement the selected mode and verify locally before deployment. Corrected README/DEPLOYMENT local test count to 60; remote evidence remains 58. Documentation checks pass; application tests were not rerun because code is unchanged.
+
+## Local backup recovery verified - 2026-09-17
+
+- Confirmed working: two new synthetic recovery tests; all 60 backend tests pass locally on Windows. Complete offline same-path snapshot restores account login, API results, ownership protection and identical PDF bytes.
+- Expected failure verified: database-only restore retains text/API responses but original PDF is missing. No normal database, uploads or running servers changed.
+- Added backend/tests/BACKUP_RECOVERY.md with repeatable command, offline procedure and path limits. No application/schema/dependency changes.
+- Next: choose disposable demo versus persistent hosting, then validate the chosen host. Hosted restore, relocation, retention and public deployment remain unverified. No local blocker. Changes remain uncommitted; earlier documentation edits preserved.
+
+## First remote CI run passed - 2026-09-16
+
+Confirmed working: [Project checks run 35131859172](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) completed successfully for pushed commit 1c468db4a8f8c76923e5a6f04926576d86fa5e09. GitHub API verified success for every step in Backend (windows-latest), Backend (ubuntu-latest), and Frontend (Ubuntu). Backend pinned installation, pip check, 58-test suite, fresh migration and model comparison passed on both OS runners. Frontend npm ci, lint and build passed on Ubuntu.
+
+Previous workflow/Linux uncertainty is resolved for these checks. This is not a hosted deployment, browser CI run, or persistence/restore test. No code fix was needed. Working tree was clean at session start; only verification documentation changed. Next: choose deployment data policy/hosting, or verify backup recovery locally before persistent deployment. No host or paid service selected. Documentation changes remain uncommitted.
+
 ## Continuous integration workflow added - 2026-09-16
 
 Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.

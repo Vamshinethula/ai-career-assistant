@@ -42,3 +42,39 @@ registering with a valid password. Child-process logs are suppressed; use the
 API test suite to inspect backend warnings directly.
 
 Keyboard checkpoint: real Tab/Enter events verify the first-focus skip link is visible, activates workspace focus, and leads to the registration input. This does not replace screen-reader or comprehensive accessibility testing.
+
+Demo checkpoint: set CAREER_TEST_DEMO=true before running the script to start
+an isolated Vite demo server on port 5174 (which must be free). The test backend
+allows that exact origin; it does not modify the normal backend configuration.
+Checks assert the synthetic-data/reset notice before and after login, then run
+the complete workflow and mobile check. Without this setting, the normal test
+asserts that the demo notice is absent. Clear the variable afterward.
+
+Skill review checkpoint: Space opens the role disclosure, Space toggles the
+focused checkbox, reviewed counts update without changing role scores, and
+reopening role overlaps resets the checklist. A fully matched profile shows
+evidence-review guidance without checkboxes. The expanded checklist is included
+in the mobile overflow check. Both normal and demo modes pass these checks.
+
+Job comparison checkpoint: synthetic pasted text returns 66.7% and Kubernetes
+not detected; whitespace is rejected, uncatalogued text has no score, editing
+clears stale results, blocked requests show feedback and can be retried, and
+closing/reopening clears pasted text/results. The form is included in the mobile
+overflow check. API tests separately cover length limits and ownership.
+
+Requirement labels: verify required, optional/preferred, explicitly not-required
+and uncertain labels while overlap stays 75% for the synthetic four-skill case.
+Space expands conflicting SQL source statements. Closing clears labels/evidence;
+HTML-like input displays literally without creating an image or executing code.
+Both normal and demo browser modes pass these checks.
+
+User-label review: native select keyboard interaction changes an uncertain SQL
+label to the user's Required choice while the automatic label and 75% score
+stay visible. Reset clears it; repeat comparison, editing and closing also clear
+temporary choices. Mobile layout is checked with a choice displayed.
+
+Export checkpoint: force a temporary Blob-URL failure to verify readable feedback,
+then allow a real Chrome download into the isolated test directory. Read and parse
+the JSON file to verify score, automatic/user label provenance, source evidence
+and absence of token/resume-text fields. Cleanup removes the synthetic download.
+Closing results removes the export button. Normal/demo modes pass.

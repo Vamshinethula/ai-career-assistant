@@ -1,13 +1,22 @@
 # Deployment readiness and runbook
 
 Status: preparation only. No hosting service has been selected or deployed.
-Local verification includes 58 backend tests, frontend build/lint, and a real
+Local verification includes 74 backend tests, frontend build/lint, and a real
 Chrome workflow. A fresh Windows Python environment passed installation, all tests,
 migrations and application startup; an isolated frontend passed npm ci/build/lint.
-Linux installation, public HTTPS, persistence across redeploys,
-and backup restoration have not been verified.
+GitHub Windows/Ubuntu backend install/test/migration checks and Ubuntu frontend
+install/lint/build passed for commit 1c468db. Deployment-host installation, public
+HTTPS and persistence across redeploys have not been verified. Local offline
+same-path backup restoration is verified with synthetic data; see the
+[recovery drill](backend/tests/BACKUP_RECOVERY.md). Hosted and cross-machine
+recovery remain unverified.
 
 ## Choose the first deployment's data policy
+
+See the [first deployment proposal](HOSTING_PLAN.md) for a concrete candidate
+layout and the different requirements for each option. The user selected a
+disposable synthetic demo on 2026-09-17; host selection remains pending. Its
+frontend must use `npm run build:demo` to include the reset/synthetic-data notice.
 
 | Option | Data expectations | Required preparation |
 | --- | --- | --- |

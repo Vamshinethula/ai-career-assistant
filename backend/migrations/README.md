@@ -29,6 +29,9 @@ print('Database backup created in backups/.')
 Backups contain private account and resume data; `backups/` is ignored by Git.
 Keep uploaded files separately as part of any complete application backup.
 The migration command does not automatically back up data.
+See the [recovery drill and procedure](../tests/BACKUP_RECOVERY.md) for verified
+offline same-path restoration of both database and PDFs. Keep writers stopped
+until both parts of the snapshot are complete.
 
 ## Apply and check
 

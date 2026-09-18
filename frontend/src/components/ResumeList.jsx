@@ -3,6 +3,7 @@ import { getResumes } from '../services/api'
 import ResumeText from './ResumeText'
 import ResumeSkills from './ResumeSkills'
 import ResumeMatches from './ResumeMatches'
+import JobComparison from './JobComparison'
 
 function ResumeList({ accessToken, onSessionExpired }) {
   const [resumes, setResumes] = useState(null)
@@ -11,6 +12,7 @@ function ResumeList({ accessToken, onSessionExpired }) {
   const [selectedId, setSelectedId] = useState(null)
   const [skillsId, setSkillsId] = useState(null)
   const [matchesId, setMatchesId] = useState(null)
+  const [comparisonId, setComparisonId] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -78,6 +80,17 @@ function ResumeList({ accessToken, onSessionExpired }) {
                 </button>
               </p>
               {matchesId === resume.id && <ResumeMatches resumeId={resume.id}
+                accessToken={accessToken} onSessionExpired={onSessionExpired} />}
+              <p>
+                <button type="button" className="form-submit"
+                  aria-expanded={comparisonId === resume.id}
+                  aria-controls={comparisonId === resume.id ? `job-comparison-${resume.id}` : undefined}
+                  aria-label={`${comparisonId === resume.id ? 'Hide' : 'Compare'} job description for ${resume.original_filename}`}
+                  onClick={() => setComparisonId(comparisonId === resume.id ? null : resume.id)}>
+                  {comparisonId === resume.id ? 'Hide job comparison' : 'Compare job description'}
+                </button>
+              </p>
+              {comparisonId === resume.id && <JobComparison key={resume.id} resumeId={resume.id}
                 accessToken={accessToken} onSessionExpired={onSessionExpired} />}
             </li>
           ))}

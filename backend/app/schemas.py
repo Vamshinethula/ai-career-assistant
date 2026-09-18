@@ -72,3 +72,39 @@ class ResumeRoleMatchesResponse(BaseModel):
     extracted_skills: list[str]
     matches: list[RoleMatchResponse]
 
+
+class JobComparisonRequest(BaseModel):
+    job_description: str = Field(min_length=1, max_length=10000)
+
+    @field_validator('job_description')
+    @classmethod
+    def reject_blank_description(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError('Job description must contain non-whitespace text')
+        return value.strip()
+
+
+RequirementCategory = Literal['required', 'optional', 'not_required', 'uncertain']
+
+
+class RequirementEvidence(BaseModel):
+    text: str = Field(min_length=1, max_length=10000)
+    category: RequirementCategory
+
+
+class JobRequirementResponse(BaseModel):
+    skill: str = Field(min_length=1)
+    category: RequirementCategory
+    evidence: list[RequirementEvidence] = Field(min_length=1)
+
+
+class JobComparisonResponse(BaseModel):
+    resume_id: int
+    method: Literal['keyword_overlap'] = 'keyword_overlap'
+    text_available: bool
+    job_skills: list[str]
+    matched_skills: list[str]
+    not_detected_skills: list[str]
+    skill_overlap_percent: float | None = Field(default=None, ge=0, le=100)
+    requirements: list[JobRequirementResponse]
+

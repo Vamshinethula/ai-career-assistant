@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getResumeMatches } from '../services/api'
+import SkillReview from './SkillReview'
 
 function ResumeMatches({ resumeId, accessToken, onSessionExpired }) {
   const [result, setResult] = useState(null)
@@ -47,6 +48,7 @@ function ResumeMatches({ resumeId, accessToken, onSessionExpired }) {
                   <p>{match.matched_skills.length} of {match.matched_skills.length + match.not_detected_skills.length} profile skills detected.</p>
                   <p>Matched: {match.matched_skills.join(', ')}</p>
                   <p>Not detected: {match.not_detected_skills.join(', ') || 'None in this example profile.'}</p>
+                  <SkillReview resumeId={resumeId} match={match} />
                 </li>
               ))}</ol>}
         <p className="registration-note">Not detected means absent from the matched terms,

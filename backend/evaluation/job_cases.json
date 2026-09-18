@@ -1,0 +1,18 @@
+[
+  {"id":"required-list","resume":"Python SQL","job":"Required: Python and SQL.","expected_job_skills":["Python","SQL"],"expected_score":100.0,"required_skills":["Python","SQL"]},
+  {"id":"mixed-required-optional","resume":"Python","job":"Python is required. Docker is optional.","expected_job_skills":["Docker","Python"],"expected_score":50.0,"required_skills":["Python"]},
+  {"id":"preferred-heading","resume":"Python","job":"Required skills: Python\nPreferred skills: Docker and Git","expected_job_skills":["Docker","Git","Python"],"expected_score":33.3,"required_skills":["Python"]},
+  {"id":"not-required","resume":"Python","job":"Python is required. Java is not required.","expected_job_skills":["Java","Python"],"expected_score":50.0,"required_skills":["Python"]},
+  {"id":"no-experience-required","resume":"Git","job":"Git is required. No experience with Docker is required.","expected_job_skills":["Docker","Git"],"expected_score":50.0,"required_skills":["Git"]},
+  {"id":"not-only","resume":"Python SQL","job":"Not only Python but also SQL is required.","expected_job_skills":["Python","SQL"],"expected_score":100.0,"required_skills":["Python","SQL"]},
+  {"id":"not-optional","resume":"Python","job":"Python is not optional.","expected_job_skills":["Python"],"expected_score":100.0,"required_skills":["Python"]},
+  {"id":"optional-only","resume":"Java","job":"Python is optional.","expected_job_skills":["Python"],"expected_score":0.0,"required_skills":[]},
+  {"id":"required-aliases","resume":"JavaScript FastAPI","job":"Required: Java Script and Fast API.","expected_job_skills":["FastAPI","JavaScript"],"expected_score":100.0,"required_skills":["FastAPI","JavaScript"]},
+  {"id":"repeated-mentions","resume":"Python","job":"Python, PYTHON, python and Docker","expected_job_skills":["Docker","Python"],"expected_score":50.0},
+  {"id":"no-job-terms","resume":"Python","job":"Communicate clearly and collaborate with colleagues.","expected_job_skills":[],"expected_score":null},
+  {"id":"no-resume-text","resume":null,"job":"Required: Python","expected_job_skills":["Python"],"expected_score":null},
+  {"id":"zero-shared","resume":"Java","job":"Python SQL","expected_job_skills":["Python","SQL"],"expected_score":0.0},
+  {"id":"unlisted-required-skill","resume":"Kotlin","job":"Kotlin is required.","expected_job_skills":[],"expected_score":null,"required_skills":["Kotlin"]},
+  {"id":"ordinary-word","resume":"React","job":"You must react quickly to incidents.","expected_job_skills":["React"],"expected_score":100.0,"required_skills":[]},
+  {"id":"negated-resume-experience","resume":"I have not used Python.","job":"Python is required.","expected_job_skills":["Python"],"expected_score":100.0,"required_skills":["Python"],"note":"The raw score must not be interpreted as evidence of Python experience."}
+]

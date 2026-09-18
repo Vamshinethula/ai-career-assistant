@@ -27,7 +27,9 @@
   font-weight: 600;
 }
 
-.form-field input {
+.form-field input,
+.form-field select,
+.form-field textarea {
   width: 100%;
   min-width: 0;
   padding: 12px;
@@ -36,6 +38,10 @@
   color: #18342f;
   background: #ffffff;
   font: inherit;
+}
+
+.form-field textarea {
+  resize: vertical;
 }
 
 .form-submit {
@@ -60,6 +66,8 @@
 }
 
 .form-field input:focus-visible,
+.form-field select:focus-visible,
+.form-field textarea:focus-visible,
 .form-submit:focus-visible {
   outline: 3px solid #42665a;
   outline-offset: 3px;

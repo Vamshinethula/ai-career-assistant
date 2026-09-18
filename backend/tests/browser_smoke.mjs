@@ -2,16 +2,19 @@
 // Uses installed Chrome and Python environment; reserves ports 8001/9223.
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import net from 'node:net'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+const demo = process.env.CAREER_TEST_DEMO === 'true'
+const frontendPort = demo ? 5174 : 5173
+const frontendUrl = `http://127.0.0.1:${frontendPort}`
 const chrome = process.env.CAREER_TEST_CHROME || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-for (const port of [8001, 9223]) {
+for (const port of [8001, 9223, ...(demo ? [frontendPort] : [])]) {
   await new Promise((resolve, reject) => {
     const server = net.createServer()
     server.once('error', () => reject(new Error(`Port ${port} is in use; stop its dev server before this test.`)))
@@ -25,7 +28,8 @@ let command
 function start(executable, args, cwd) {
   const child = spawn(executable, args, {
     cwd, windowsHide: true, stdio: 'ignore',
-    env: { ...process.env, CAREER_BROWSER_TEST_DIR: storage, PYTHONPATH: path.join(root, 'backend') },
+    env: { ...process.env, CAREER_BROWSER_TEST_DIR: storage, PYTHONPATH: path.join(root, 'backend'),
+      CORS_ORIGINS: frontendUrl, VITE_API_BASE_URL: 'http://127.0.0.1:8000' },
   })
   child.on('error', (error) => { child.startError = error })
   children.push(child)
@@ -41,9 +45,11 @@ async function until(check, label) {
 try {
   start(path.join(root, 'backend/.venv/Scripts/python.exe'), ['tests/browser_server.py'], path.join(root, 'backend'))
   let frontendRunning = false
-  try { frontendRunning = (await fetch('http://127.0.0.1:5173/')).ok } catch { /* start below */ }
-  if (!frontendRunning) start(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '5173', '--strictPort'], path.join(root, 'frontend'))
-  for (const url of ['http://127.0.0.1:8001/health', 'http://127.0.0.1:5173/']) {
+  if (!demo) {
+    try { frontendRunning = (await fetch(frontendUrl)).ok } catch { /* start below */ }
+  }
+  if (!frontendRunning) start(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(frontendPort), '--strictPort', '--mode', demo ? 'demo' : 'development'], path.join(root, 'frontend'))
+  for (const url of ['http://127.0.0.1:8001/health', frontendUrl]) {
     await until(async () => { try { return (await fetch(url)).ok } catch { return false } }, url)
   }
   start(chrome, ['--headless=new', '--no-first-run', '--no-default-browser-check',
@@ -92,8 +98,10 @@ try {
   }
   // Redirect this browser's API requests only; never submit test data to the real DB.
   await command('Fetch.enable', { patterns: [{ urlPattern: 'http://127.0.0.1:8000/*', requestStage: 'Request' }] })
-  await command('Page.navigate', { url: 'http://127.0.0.1:5173/' })
+  await command('Page.navigate', { url: frontendUrl })
   await until(() => hasText('Create your account'), 'registration form')
+  assert.equal(await hasText('Disposable portfolio demo'), demo, 'Notice matches build mode')
+  if (demo) assert(await hasText('Do not upload personal information.'))
   const pressKey = async (key, code, virtualKey) => {
     for (const type of ['keyDown', 'keyUp']) {
       await command('Input.dispatchKeyEvent', { type, key, code, windowsVirtualKeyCode: virtualKey })
@@ -120,6 +128,7 @@ try {
   await input('login-password', 'synthetic-test-password')
   await click('Log in')
   await until(() => hasText('Welcome, Browser Test User'), 'profile')
+  assert.equal(await hasText('Disposable portfolio demo'), demo, 'Notice remains available after login')
   const { root: dom } = await command('DOM.getDocument')
   const { nodeId } = await command('DOM.querySelector', { nodeId: dom.nodeId, selector: '#resume-file' })
   for (const [filename, message] of [
@@ -142,6 +151,23 @@ try {
   await click('View role overlaps')
   await until(() => hasText('100% skill overlap'), 'role overlap')
   assert(await hasText('5 of 5 profile skills detected.'))
+  const reviewSelector = '[id$="-java_backend"].skill-review'
+  await evaluate(`document.querySelector('${reviewSelector} summary').focus()`)
+  assert(await evaluate(`document.activeElement === document.querySelector('${reviewSelector} summary')`), 'Review summary receives focus')
+  await pressKey(' ', 'Space', 32)
+  await until(() => evaluate(`document.querySelector('${reviewSelector}').open`), 'keyboard expands skill review')
+  await until(() => hasText('0 of 2 terms reviewed for Java backend developer.'), 'review checklist')
+  await evaluate(`document.querySelector('${reviewSelector} input').focus()`)
+  await pressKey(' ', 'Space', 32)
+  await until(() => hasText('1 of 2 terms reviewed for Java backend developer.'), 'review checkbox')
+  assert(await hasText('60% skill overlap'), 'Review does not change the matching score')
+  await pressKey(' ', 'Space', 32)
+  await until(() => hasText('0 of 2 terms reviewed for Java backend developer.'), 'uncheck review')
+  await pressKey(' ', 'Space', 32)
+  await until(() => hasText('1 of 2 terms reviewed for Java backend developer.'), 'review before reset')
+  await evaluate("document.querySelector('[id$=\"-python_backend\"].skill-review summary').click()")
+  assert(await hasText('All terms in this example profile were detected.'))
+  assert.equal(await evaluate("document.querySelectorAll('[id$=\"-python_backend\"].skill-review input').length"), 0)
   await click('Hide role overlaps')
   await command('Network.enable')
   await command('Network.setBlockedURLs', { urls: ['*://127.0.0.1:8000/resumes/*/matches'] })
@@ -150,12 +176,104 @@ try {
   await command('Network.setBlockedURLs', { urls: [] })
   await click('Try again')
   await until(() => hasText('100% skill overlap'), 'retry recovery')
+  await evaluate(`document.querySelector('${reviewSelector} summary').click()`)
+  assert(await hasText('0 of 2 terms reviewed for Java backend developer.'), 'Reopened panel resets temporary progress')
+  await click('Compare job description')
+  const jobInputId = await evaluate("document.querySelector('textarea[id^=job-description-]').id")
+  const replaceJobText = async (text) => {
+    await evaluate(`document.getElementById(${JSON.stringify(jobInputId)}).select()`)
+    await input(jobInputId, text)
+  }
+  await input(jobInputId, '   ')
+  await click('Compare skills')
+  await until(() => hasText('not just spaces.'), 'blank job description feedback')
+  await replaceJobText('Python Docker Kubernetes')
+  await click('Compare skills')
+  await until(() => hasText('66.7% job-description keyword overlap'), 'job comparison')
+  assert(await hasText('Not detected in resume: Kubernetes'))
+  assert(await hasText('Every detected term counts equally, including optional or negated mentions.'))
+  await replaceJobText('Team player with communication skills')
+  assert(!(await hasText('66.7% job-description keyword overlap')), 'Editing clears stale comparison')
+  await click('Compare skills')
+  await until(() => hasText('There is not enough information to calculate overlap.'), 'uncatalogued job text')
+  await replaceJobText('Python Docker Kubernetes')
+  await command('Network.setBlockedURLs', { urls: ['*://127.0.0.1:8000/resumes/*/compare-job'] })
+  await click('Compare skills')
+  await until(() => hasText('You can submit the comparison again.'), 'job comparison network failure')
+  await command('Network.setBlockedURLs', { urls: [] })
+  await click('Compare skills')
+  await until(() => hasText('66.7% job-description keyword overlap'), 'job comparison retry')
+  await replaceJobText('Python is required. Docker is optional. Java is not required. SQL is required. SQL is optional.')
+  await click('Compare skills')
+  await until(() => hasText('75% job-description keyword overlap'), 'requirement comparison')
+  for (const label of ['Python: Required', 'Docker: Optional / preferred', 'Java: Explicitly not required', 'SQL: Uncertain']) {
+    assert(await hasText(label), `Requirement label ${label}`)
+  }
+  await evaluate("Array.from(document.querySelectorAll('summary')).find(s => s.textContent === 'Source wording for SQL').focus()")
+  await pressKey(' ', 'Space', 32)
+  await until(() => hasText('SQL is required.'), 'requirement evidence disclosure')
+  assert(await hasText('SQL is optional.'))
+  const sqlChoice = "Array.from(document.querySelectorAll('label')).find(l => l.textContent === 'Your label for SQL').control"
+  await evaluate(`${sqlChoice}.focus()`)
+  await pressKey('Home', 'Home', 36)
+  await pressKey('ArrowDown', 'ArrowDown', 40)
+  await pressKey('Tab', 'Tab', 9)
+  await until(() => hasText('Your choice for SQL: Required'), 'keyboard label correction')
+  assert(await hasText('SQL: Uncertain'), 'Automatic label remains visible')
+  assert(await hasText('75% job-description keyword overlap'), 'Correction does not change score')
+  await click('Reset label for SQL')
+  assert(!(await hasText('Your choice for SQL:')), 'Reset removes user choice')
+  const chooseSql = () => evaluate(`(() => { const choice = ${sqlChoice}; choice.value = 'optional'; choice.dispatchEvent(new Event('change', {bubbles:true})); })()`)
+  await chooseSql()
+  await until(() => hasText('Your choice for SQL: Optional / preferred'), 'optional correction')
+  await click('Compare skills')
+  await until(() => hasText('75% job-description keyword overlap'), 'recompare resets correction')
+  assert(!(await hasText('Your choice for SQL:')), 'Recompare removes user choices')
+  await chooseSql()
+  await until(() => hasText('Your choice for SQL:'), 'choice before editing')
+  await replaceJobText('Python is required. Docker is optional. Java is not required. SQL is required. SQL is optional. ')
+  assert(!(await hasText('Your choice for SQL:')), 'Editing clears corrections')
+  await click('Compare skills')
+  await until(() => hasText('75% job-description keyword overlap'), 'comparison after editing')
+  await chooseSql()
+  await until(() => hasText('Your choice for SQL:'), 'choice before closing')
+  await command('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: storage })
+  await evaluate("window.originalCreateObjectURL = URL.createObjectURL; URL.createObjectURL = () => { throw new Error('synthetic failure') }")
+  await click('Download comparison summary')
+  await until(() => hasText('Could not start the download.'), 'download failure feedback')
+  await evaluate('URL.createObjectURL = window.originalCreateObjectURL; delete window.originalCreateObjectURL')
+  await click('Download comparison summary')
+  const comparisonResumeId = jobInputId.replace('job-description-', '')
+  let exportedSummary
+  await until(async () => {
+    try { exportedSummary = JSON.parse(await readFile(path.join(storage, `resume-${comparisonResumeId}-comparison.json`), 'utf8')); return true }
+    catch { return false }
+  }, 'downloaded summary file')
+  assert.equal(exportedSummary.skill_overlap_percent, 75)
+  const exportedSql = exportedSummary.requirements.find(row => row.skill === 'SQL')
+  assert.equal(exportedSql.automatic_category, 'uncertain')
+  assert.equal(exportedSql.user_choice, 'optional')
+  assert.equal(exportedSql.evidence.length, 2)
+  assert(!('access_token' in exportedSummary) && !('resume_text' in exportedSummary))
   await command('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true })
   assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'), 'Mobile horizontal overflow')
+  await click('Hide job comparison')
+  await click('Compare job description')
+  assert.equal(await evaluate("document.querySelector('textarea[id^=job-description-]').value"), '')
+  assert(!(await hasText('66.7% job-description keyword overlap')), 'Closing clears comparison')
+  assert(!(await hasText('Requirement wording to review')), 'Closing clears requirement evidence')
+  assert(!(await hasText('Download comparison summary')), 'No export for stale results')
+  assert(!(await hasText('Your choice for SQL:')), 'Closing clears corrections')
+  await replaceJobText('Python <img src=x onerror="window.evidenceExecuted=true"> is required.')
+  await click('Compare skills')
+  await until(() => hasText('Python: Uncertain'), 'unsupported source wording')
+  await evaluate("Array.from(document.querySelectorAll('summary')).find(s => s.textContent === 'Source wording for Python').click()")
+  assert(await hasText('<img src=x'), 'Source markup is visible as literal text')
+  assert(await evaluate("!window.evidenceExecuted && !document.querySelector('.requirement-results img')"), 'Source text never becomes HTML')
   await click('Log out')
   await until(() => hasText('Create your account'), 'logout')
   assert(!(await hasText('100% skill overlap')))
-  console.log('PASS: real Chrome keyboard skip navigation, password validation, login/CORS, upload limits/errors/recovery, list, text, skills, roles, network failure/retry, mobile overflow, logout.')
+  console.log('PASS: real Chrome keyboard navigation, auth, uploads, text/skills/roles, skill review, job comparison/validation/empty results/retry/reset, mobile overflow, logout.')
 } finally {
   if (command && socket?.readyState === WebSocket.OPEN) {
     try { await command('Browser.close') } catch { /* process cleanup below */ }

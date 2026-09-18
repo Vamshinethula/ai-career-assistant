@@ -1,5 +1,27 @@
 # ERRORS_AND_FIXES.md — AI Career Assistant
 
+## 2026-09-18 - Node test runner sandbox restriction
+
+Initial npm test failed with Error: spawn EPERM as Node attempted to spawn the test worker. Approved execution outside the sandbox passed all three tests without source changes. Lint and both builds also passed. Lesson: Node built-in tests can require the same process permissions as Vite in this environment.
+
+## 2026-09-18 - Browser helper variable scope
+
+New label-review test failed with Error: Browser evaluation failed on a repeated helper call. The helper declared top-level const choice repeatedly in the same Chrome evaluation context. Wrapped the helper body in an immediately invoked function to give each call its own scope. Verified both normal/demo complete workflows pass. Application source did not require a fix. Lesson: repeated debugger evaluations can share lexical state.
+
+## 2026-09-17 - Browser disclosure activation check
+
+New Chrome test failed AssertionError: Keyboard expands skill review; waiting instead produced Timed out: keyboard expands skill review. Synthetic Enter events did not open the native details control in this run. Added explicit focused-summary assertion and used standard Space activation. Both normal/demo browser workflows then passed, including checkbox keyboard toggles and reset checks. No application workaround needed. Root cause is narrowed to the test activation sequence; manual Enter behavior remains unverified. Lesson: verify focus and distinguish supported keyboard paths from synthetic-event assumptions.
+
+## 2026-09-17 - Demo build sandbox restriction
+
+Initial npm run build:demo failed with Error: spawn EPERM while loading Vite configuration. This matches the existing sandbox child-process restriction. Approved execution outside the sandbox passed for demo and normal builds without application fixes. Both browser workflows also passed. Lint passed inside the sandbox.
+
+## 2026-09-17 - Recovery test execution and discovery
+
+Initial test execution failed with PermissionError: [WinError 5] Access is denied under Python's temporary directory; upload tests also returned 500 when temporary storage was inaccessible. Approved execution outside the sandbox passed without application changes. No production-data fix was needed.
+
+The first recovery-test import exposed ResumeFlowTests directly, so unittest also discovered its three tests in the new module (five tests instead of two). Changed to a module import and reused its driver methods through that module. Verified targeted run: exactly 2 tests, OK; full suite: 60 tests, OK. Lesson: distinguish execution restrictions from app failures and avoid exposing imported TestCase classes to discovery.
+
 ## 2026-09-10 - Verification environment and bcrypt warning
 
 - Build error: `Error: spawn EPERM` in Vite config loading under the sandbox. Re-ran the same build with approved escalation; build passed. Cause: sandbox child-process restriction, not application source.

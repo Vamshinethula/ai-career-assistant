@@ -1,5 +1,75 @@
 # PROJECT_HANDOFF.md --- AI Career Assistant
 
+## Feature checkpoint review - 2026-09-18
+
+Reviewed accumulated comparison/requirement/review/export features, demo mode, recovery verification and documentation for Git checkpoint. Latest local evidence: 74 backend tests, 3 frontend tests, lint, normal/demo builds and both Chrome workflows pass. Private data/configuration and generated output are ignored. Preparing commit/push; updated remote CI remains pending. No deployment is part of this checkpoint.
+
+## Comparison export complete - 2026-09-18
+
+Added services/comparisonExport.js pure JSON serializer and Download comparison summary action in JobComparison.jsx. Explicit fields preserve provenance/null scores, exclude unrelated private fields; evidence may include original input. Blob URL is revoked after download initiation; failures show feedback. Result invalidation removes button. No import/server persistence.
+
+Verified 3 Node built-in unit tests (npm test), lint, normal/demo builds, both Chrome flows reading actual synthetic JSON downloads and testing failure/retry. Added frontend CI test step, not verified remotely. Backend unchanged, prior 74-test count. Test runner initially hit sandbox spawn EPERM; approved rerun passed. Next: review/commit accumulated checkpoints and remote CI verification. All pending edits preserved, no commit/deployment.
+
+## User requirement review UI complete - 2026-09-18
+
+JobComparison.jsx now tracks labelChoices in local state, renders native select with Use automatic label plus four categories, separately displays Your choice, and offers per-skill reset. Automatic category/evidence never overwritten. State clears on edit/submission and unmount. No API transmission, persistence or score change.
+
+Verified lint, both builds and normal/demo Chrome flows. Tests use real keyboard for first choice, then verify reset/recompare/edit/close and mobile. Browser helper initially redeclared a top-level const; wrapping evaluation helper in an IIFE fixed the test failure. Backend unchanged (prior 74 tests). Next suggested product feature: downloadable comparison summary including source/provenance and user choices, with privacy and temporary-state behavior explicit. No commit/deployment; preserve prior pending work.
+
+## Requirement API/UI integration complete - 2026-09-18
+
+JobComparisonResponse now requires requirements list with typed category/evidence. compare_job_description calls the classifier but preserves old score/catalog. Whole-text versus fragment alias mismatch gets uncertain + original input evidence, and extra fragment skills are filtered out. Source excerpts may contain the full job input; no persistence.
+
+JobComparison.jsx displays tentative labels and details/summary excerpts as React text, including conflicts. api.js validates coverage, categories, evidence provenance and aggregation. Update frontend/backend together; old backend missing field produces readable error. No DB migration. Verified 74 backend tests, lint, both builds, both Chrome flows, eight isolated client rejection cases. Source markup never executes, keyboard and mobile pass. Next suggested product work: explicit review of uncertain classifications, evaluated separately before changing any scores. No real data changes, commit or deployment; preserve pending work.
+
+## Explicit requirements service checkpoint - 2026-09-18
+
+Added app/services/job_requirements.py with classify_job_requirements(text), no callers in production API yet. Four categories: required, optional, not_required (absence of obligation, not prohibited skill), uncertain. Full-fragment templates plus catalog-only lists; no cross-line heading inference. Conflicts or an unclassified occurrence produce uncertain. Evidence retains source fragments; duplicates deduplicated.
+
+Added evaluation/requirement_cases.json, evaluate_requirements.py, REQUIREMENTS.md and five tests. Verified 22 policy cases and 72 backend tests; existing job-score evaluator unchanged. Half of 32 emitted fixture skill records abstain. Same-author review group is not independent accuracy validation. Next: additive comparison response schema + UI evidence display with auth/client/browser tests; keep keyword score unchanged. No production endpoint/UI changes, dependencies or database mutations. Changes uncommitted; preserve all earlier work.
+
+## Comparison quality checkpoint complete - 2026-09-18
+
+Added evaluation/job_cases.json (16 examples), evaluate_jobs.py and test_job_evaluation.py. Runner exits nonzero on keyword-contract regressions and reports semantic interpretation gaps separately. All 16 contract cases pass; required-only interpretation is exact on 5/12 with TP=12 FP=7 FN=1. Negated resume experience is separately documented and is not measured by job-side metrics.
+
+Decision: preserve keyword contract rather than add a broad negation heuristic that fails not optional/not only. JobComparison UI now explicitly states every detected term counts equally with required/optional example. Verified all 67 backend tests, lint, demo build and full demo browser flow. No new dependencies or actual user data changes. Next product task: define separate requirement classifications with uncertainty and an independent evaluation set before changing scoring. Existing normal-mode build evidence is from previous checkpoint; current changed copy verified in demo. All pending work uncommitted; preserve earlier edits.
+
+## Job-description comparison complete locally - 2026-09-17
+
+Added services/job_comparison.py, request/response schemas and POST /resumes/{resume_id}/compare-job using get_owned_resume. Job text 1-10,000 chars; no saving or external service. Percentage uses unique detected job skills as denominator, null for absent resume text/no job skills. Existing extractor limitations retained.
+
+JobComparison.jsx is toggled per resume, uses shared client, clears results on edit and text/results on close, aborts on unmount, handles 401 via session reset. Client validates skill partition and rounded score with tolerance for Python/JS ties. See backend/evaluation/JOB_COMPARISON.md and README for examples/limits.
+
+Verified 66 backend tests, lint, both builds, both Chrome workflows and isolated client validation probes. No actual user data changed, no schema/dependency change. Restart normal backend to load the new endpoint; test servers were isolated. Next: comparison-quality evaluation for required/optional/negated phrases, then choose smallest evidence-based improvement. Demo remains prepared but unpublished. Pending edits preserved; nothing committed.
+
+## Product feature: skill review checklist - 2026-09-17
+
+User requested next product feature instead of more hosting work. Added SkillReview.jsx under each role in ResumeMatches, reusing not_detected_skills. Native details/summary disclosure, labelled checkboxes, temporary per-role reviewed state/count, all-terms-detected guidance. Honest wording: review is not mastery; missing keyword is not proven skill gap. Unmount on hiding/switching resumes resets state; nothing persisted.
+
+Verified lint, normal/demo builds and full Chrome workflows in both modes. Keyboard Space, check/uncheck, unchanged score, reset, no-gap branch and mobile overflow covered. Synthetic Enter activation did not open native details; Space with explicit focus passed. Backend unchanged (prior 60 tests). Next suggested product checkpoint: specify user-pasted job-description comparison and its evaluation, then implement incrementally. Demo hosting decision remains disposable, no deployment. All changes uncommitted; preserve earlier edits.
+
+## Disposable demo selected and prepared - 2026-09-17
+
+User chose disposable demo. App.jsx displays notice only when Vite MODE is demo; npm dev:demo/build:demo enable it. Notice is within workspace before forms/dashboard. It requests synthetic details/test password/resume and explains possible resets and cold starts. This is guidance, not personal-data detection or automatic deletion. Normal local storage remains unchanged.
+
+Verified lint, demo/normal builds with notice artifact checks, both Chrome workflows, and four migration tests. CAREER_TEST_DEMO=true uses isolated Vite 5174 and test-only CORS. Full backend suite remains last verified at 60. HOSTING_PLAN.md has selected-policy settings; Render still a candidate, no service created. Next: Git checkpoint/provider setup, actual URLs/separate secret, then hosted verification. Use build:demo on host; last local build was normal and dist is ignored. Preserve all existing pending edits.
+
+## Hosting proposal awaiting data policy - 2026-09-17
+
+HOSTING_PLAN.md is a draft, not an approved host choice. User was asked disposable synthetic demo versus persistent app; no answer yet. Render docs reviewed: free backend loses local files on sleep/restart/redeploy, paid disk accessible at runtime only. Existing frontend timeout is 15 seconds, so cold-start behavior needs verification. Next: obtain data-policy choice, prepare that mode, then review provider/cost and actual deployment. No application changes or external provisioning; prior 60-test evidence retained and pending edits preserved.
+
+## Local backup recovery checkpoint - 2026-09-17
+
+Two new tests in backend/tests/test_backup_recovery.py verify SQLite snapshot plus uploads restored offline to the same absolute path using temporary synthetic data. All 60 backend tests pass locally; only the prior 58-test suite has remote CI evidence. Reuses existing API driver, checks saved login/results, schema version, ownership and exact PDF bytes. Database-only negative case proves dashboard success is insufficient. See backend/tests/BACKUP_RECOVERY.md for command/procedure. Real saved data and normal servers untouched; application code unchanged.
+
+Next: choose demo versus persistent data policy and hosting requirements; no provider selected or deployment performed. Different-path/cross-OS restoration and hosted retention/recovery remain unverified. Changes uncommitted; preserve pre-existing documentation edits.
+
+## First remote CI run passed - 2026-09-16
+
+Confirmed working: [Project checks run 35131859172](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) completed successfully for pushed commit 1c468db4a8f8c76923e5a6f04926576d86fa5e09. GitHub API verified success for every step in Backend (windows-latest), Backend (ubuntu-latest), and Frontend (Ubuntu). Backend pinned installation, pip check, 58-test suite, fresh migration and model comparison passed on both OS runners. Frontend npm ci, lint and build passed on Ubuntu.
+
+Previous workflow/Linux uncertainty is resolved for these checks. This is not a hosted deployment, browser CI run, or persistence/restore test. No code fix was needed. Working tree was clean at session start; only verification documentation changed. Next: choose deployment data policy/hosting, or verify backup recovery locally before persistent deployment. No host or paid service selected. Documentation changes remain uncommitted.
+
 ## Continuous integration workflow added - 2026-09-16
 
 Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.

@@ -1,5 +1,47 @@
 # ROADMAP.md — AI Career Assistant
 
+## Comparison export checkpoint - 2026-09-18
+
+Completed JSON download with automatic/user provenance and verified real-browser file output. Next workflow checkpoint: review and commit accumulated feature work, then verify updated GitHub Actions including frontend unit tests. Further product scope can follow a stable checkpoint; saved comparisons/import/PDF reports remain unimplemented.
+
+## User label review checkpoint - 2026-09-18
+
+Completed temporary label corrections with source provenance and both-mode browser verification. Suggested next feature: export the reviewed comparison with automatic/user labels, score meaning and limitations. Saved comparison persistence and reviewed scoring remain unimplemented; backend remains at 74 verified tests.
+
+## Requirement labels visible in comparison - 2026-09-18
+
+Completed API/client/UI integration with source evidence and unchanged keyword score; all 74 backend tests and both browser modes pass. Suggested next product checkpoint: explicit user review/correction of uncertain labels, with scope and persistence defined before any requirement-based scoring. Broader independent semantic evaluation remains needed. Hosting remains separate.
+
+## Requirement classification service - 2026-09-18
+
+Completed standalone conservative classifier and evidence output, verified against 22 policy examples and full 72-test backend suite. Next checkpoint: add labels/source excerpts to comparison API/UI while preserving existing scores; verify schemas, ownership, error handling and browser presentation. Independent semantic evaluation and broader coverage remain future work.
+
+## Context evaluation complete - 2026-09-18
+
+Completed reproducible job-context evaluation and documented gaps; 16/16 keyword-contract cases and 67 backend tests pass. Added explicit score interpretation in UI. Next product checkpoint: define separate required/optional/negated/uncertain outputs and independent examples before implementing context-aware matching. No automatic requirement classification is implemented. Hosting remains separately prepared.
+
+## Job-description comparison checkpoint - 2026-09-17
+
+Completed stateless pasted-job comparison API and UI with 66 backend tests and browser/build/lint evidence. Next product checkpoint: evaluate required/optional/negated language and catalog gaps with explicit expected results before expanding matching intelligence. Saved comparisons, external AI and live job feeds remain unimplemented; hosting stays separate.
+
+## Product features resumed - 2026-09-17
+
+Completed temporary per-role skill review checklist with full browser verification. User requested product feature work; hosting remains prepared separately. Suggested next checkpoint: define and then build comparison against a pasted job description, reusing skill extraction with clear keyword limitations and synthetic evaluation. No live job integration or LLM provider selected.
+
+## Disposable demo selected - 2026-09-17
+
+Completed demo-specific frontend notice/build commands and local verification. Next: review Git checkpoint, configure chosen free hosting with real URLs and separate secret, then verify public workflow and reset behavior. No hosted deployment yet. Persistent hosting/operational backups remain deferred rather than required for this synthetic demo.
+
+## Recovery checkpoint - 2026-09-17
+
+Completed local offline same-path recovery drill with synthetic database and uploads; all 60 backend tests pass. Next milestone remains choosing disposable demo versus persistent hosting and validating the selected host. Automated operational backups, retention, hosted restore and path relocation are not implemented or verified by this drill.
+
+## First remote CI run passed - 2026-09-16
+
+Confirmed working: [Project checks run 35131859172](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) completed successfully for pushed commit 1c468db4a8f8c76923e5a6f04926576d86fa5e09. GitHub API verified success for every step in Backend (windows-latest), Backend (ubuntu-latest), and Frontend (Ubuntu). Backend pinned installation, pip check, 58-test suite, fresh migration and model comparison passed on both OS runners. Frontend npm ci, lint and build passed on Ubuntu.
+
+Previous workflow/Linux uncertainty is resolved for these checks. This is not a hosted deployment, browser CI run, or persistence/restore test. No code fix was needed. Working tree was clean at session start; only verification documentation changed. Next: choose deployment data policy/hosting, or verify backup recovery locally before persistent deployment. No host or paid service selected. Documentation changes remain uncommitted.
+
 ## Continuous integration workflow added - 2026-09-16
 
 Implemented but unverified on GitHub: .github/workflows/ci.yml runs backend dependency/test/migration checks on Windows and Ubuntu and frontend install/lint/build on Ubuntu. Python 3.12 and Node 24 explicit; read-only permissions, no application secrets or deployment, concurrency cancellation and job timeouts. .github/CI.md explains results and troubleshooting. Official GitHub examples and repository command paths reviewed; prior clean Windows 58-test/build/lint evidence retained. No application changes or unnecessary test reruns.

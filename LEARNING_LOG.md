@@ -1,5 +1,71 @@
 # LEARNING_LOG.md — AI Career Assistant
 
+## 2026-09-18 - Browser downloads and explicit serialization
+
+A serializer converts current data into a file format. comparisonExport.js selects fields explicitly rather than exporting every object property, keeping authentication tokens and resume text out. JSON preserves automatic labels and user choices separately; null remains unknown rather than becoming zero.
+
+The browser wraps the JSON in a Blob, creates a temporary object URL and activates a download link. The URL is released afterward. Downloaded files are separate from temporary React state and remain after logout. Evidence may contain private source text, so review before sharing.
+
+Try Download comparison summary after choosing a label; open the JSON and compare automatic_category with user_choice. npm test runs three pure serializer checks; Chrome checks a real download and simulated failure/retry. You should now explain serialization, browser-created files and why download initiation does not prove a user saved a file.
+
+## 2026-09-18 - User review without overwriting model output
+
+A user interpretation and an automatic label are different facts. JobComparison stores choices in a separate object keyed by skill; it never edits the API result. A controlled select displays the chosen value. Reset removes that choice, and a fresh comparison starts with an empty object.
+
+Try a description with SQL is required. SQL is optional. The automatic label is uncertain. Choose Required in Your label for SQL: Your choice appears, while the original label and score remain. Reset returns to automatic use. This is temporary React state, not a saved correction or model training. You should now explain provenance and why editing input should invalidate derived state.
+
+## 2026-09-18 - Connecting a service through an API contract
+
+A tested function becomes a product feature when the route response schema, API client and UI agree. The comparison now carries requirements records: a skill, a tentative label and source fragments. Pydantic constrains allowed labels; the frontend checks the response before displaying it. JSX renders snippets as text, so pasted HTML-like content does not execute.
+
+Try Python is required. Docker is optional. Java is not required. SQL is required. SQL is optional. The labels include uncertain SQL with both source statements, while the keyword score still counts all four terms. Open Source wording for SQL with Space. Success is visible evidence; malformed API results show a readable error. You should now explain additive response fields, coordinated frontend/backend updates, and why evidence display is separate from changing a score.
+
+## 2026-09-18 - Abstention and evidence in classification
+
+A classifier need not guess. Our new service only labels supported explicit phrases: Python is not optional means required, while Java is not required means not_required. Mixed wording or contradictory statements becomes uncertain, with both original fragments retained for review.
+
+The service is a pure function: text in, structured records out, with no database or external AI call. Reusing the skill catalog preserves canonical names. Splitting text into fragments scopes each rule, though unsupported cross-line headings remain uncertain.
+
+Run python -m evaluation.evaluate_requirements from backend. Expect 12/12 development and 10/10 review policy matches, alongside 16 classified and 16 uncertain records. Those passes include intentional abstentions, so they are not 100% semantic accuracy. You should now explain why evidence and uncertainty are useful outputs and why a tested service can precede API/UI integration.
+
+## 2026-09-18 - Correct output versus useful interpretation
+
+A keyword matcher can work exactly as designed and still be unsuitable for identifying requirements. Our 16 keyword checks pass, yet only 5 of 12 contextual examples match manually labelled required-skill sets. Precision asks how many reported terms are truly required; recall asks how many labelled required terms were found. These synthetic metrics are not hiring accuracy.
+
+Example: Python required; Docker optional counts two mentions. A Python-only resume scores 50% keyword overlap, even though it mentions the sole required skill. Simply deleting terms near not breaks Python is not optional. We kept the score meaning and clarified it on screen instead of claiming semantic understanding.
+
+Run python -m evaluation.evaluate_jobs from backend. Success is 16 contract passes plus a visible report of known interpretation gaps, not zero limitations. You should now explain regression tests versus quality evaluation and why a passing test suite does not validate every interpretation of a score.
+
+## 2026-09-17 - Comparing sets through a protected POST endpoint
+
+A set removes duplicates. For job skills Python, Docker and Kubernetes, a resume containing Python and Docker shares two of three terms: 66.7%. The service uses set intersection for shared terms and subtraction for job terms not detected in the resume. No detected job terms means an unknown score (null), not zero.
+
+The route validates the JSON body and checks ownership before calling the service; the schema defines the response. React submits through the existing API client and clears old results when text changes so the displayed percentage cannot silently describe an earlier input. An AbortController cancels requests when the panel closes.
+
+Try Compare job description with Python Docker Kubernetes, then replace it with Team player. Expect an explained score first and an insufficient-information message second. Blank input gets validation feedback; another user's resume returns 404. You should now explain set operations, POST bodies, null versus zero and why matching keywords is not measuring proficiency. See backend/evaluation/JOB_COMPARISON.md for limits.
+
+## 2026-09-17 - Component state and honest skill feedback
+
+SkillReview receives a role match through props and keeps reviewed terms in useState. Toggling a checkbox makes a new array, which tells React to render the updated count. Each role owns its state. Closing role overlaps removes the component, so reopening creates a fresh empty checklist; this is not database persistence.
+
+Example: a resume containing Python FastAPI SQL Git Docker has two undetected terms for the Java example role. Reviewing one produces 1 of 2 terms reviewed while the 60% overlap stays unchanged. Review does not prove proficiency. Open View role overlaps, expand Review next steps, and press Space on a focused checkbox to try it. Success is an updated count; missing text/results or network errors retain the existing readable error/retry paths. You should now explain props versus local state and why a checklist is separate from evidence of skill.
+
+## 2026-09-17 - Build modes and temporary hosting storage
+
+A Vite build mode selects which frontend we produce. In App.jsx, import.meta.env.MODE === 'demo' includes the visitor notice. npm run build:demo builds that version; npm run build creates the normal one. Both write dist, so the hosting command matters. Browser tests verify the visible difference while exercising the same API features.
+
+A notice cannot delete data or prevent personal uploads. The host's temporary filesystem controls resets; our local SQLite files remain saved on normal restarts. You should now be able to distinguish frontend configuration from backend storage behavior. Run the demo browser command in HOSTING_PLAN.md; success is PASS, while missing notice or broken API flow fails the check.
+
+## 2026-09-17 - Hosting code versus keeping data
+
+A static host serves built React files; a Python web service runs FastAPI. An ephemeral filesystem can be replaced when the service restarts, losing SQLite and PDFs even though code redeploys successfully. Persistent storage preserves files under its mount path, but still needs backups. HOSTING_PLAN.md maps both options to our project. Migrations must run against the runtime storage before the app starts. You should now be able to explain why deploying code and preserving user data are separate checks. The proposed host has not been tested with this app.
+
+## 2026-09-17 - A backup needs a recovery test
+
+Our app keeps records/text in SQLite and PDF bytes in uploads/. Saving only the database misses half of that relationship. In backend/tests/test_backup_recovery.py, restoring only SQLite still allows login and text viewing, but opening the original PDF fails. A complete snapshot restores both and checks the file bytes as well as API responses.
+
+Stop writes while capturing both parts so they describe the same moment. Restore at the original absolute path because records currently save file paths. Run the two-test command in backend/tests/BACKUP_RECOVERY.md; success is OK, including the deliberately detected missing-PDF case. You should now be able to explain why a backup file existing, or a dashboard loading, does not prove recovery works. Hosted and relocated recovery need their own evidence.
+
 ## 2026-09-16 - Keyboard focus and skip links
 
 Keyboard users press Tab to move between controls. A skip link jumps past repeated introductory content. In frontend/src/App.jsx, its href points to workspace; tabIndex={-1} allows that container to receive focus without adding it to the normal Tab sequence. App.css reveals the link when focused and gives controls a visible outline.
@@ -529,3 +595,7 @@ A project can work locally because an old package is installed even when it is m
 ## 2026-09-16 - Continuous integration
 
 CI runs repeatable checks after code changes arrive on GitHub. .github/workflows/ci.yml describes events, jobs and steps. The backend matrix runs the same checks on two operating systems; the frontend job installs locked dependencies and runs lint/build. This can expose OS-specific failures that Windows-only testing misses. After pushing, open Actions > Project checks: green jobs mean their commands passed, while a red job requires reading the first failing step. Workflow creation alone is not proof it runs: the first remote run remains pending. You should explain the difference between local testing, CI verification and deployment. CI here publishes no app and uses no production data.
+
+## 2026-09-16 - Reading the first successful CI run
+
+[Project checks](https://github.com/Vamshinethula/ai-career-assistant/actions/runs/35131859172) passed on GitHub for commit 1c468db. Each backend job installed dependencies, ran the test suite and checked migrations; the Ubuntu frontend job installed, linted and built. A green run is evidence for that exact commit and those commands. It does not prove the hosted app is reachable or that uploaded files survive redeployment. To investigate a red run, open the failed job and first failed step. You should now be able to separate installation failures, test failures, build failures and deployment failures. No source change or test rerun was needed to record this successful result.
